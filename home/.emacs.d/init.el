@@ -10,6 +10,7 @@
 (package-initialize)
 
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
+                         ("marmalade" . "http://marmalade-repo.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")
                          ("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")))
 
@@ -364,3 +365,6 @@ Display the results in a hyperlinked *compilation* buffer."
                             (interactive)
                             (scroll-up 1)))
 
+
+;; Friendly scrolling in the terminal
+(xterm-mouse-mode)
