@@ -7,21 +7,23 @@
 (setq tmp-dir (file-name-as-directory (concat dotfiles-dir "tmp")))
 (make-directory tmp-dir t)
 
-(package-initialize)
+(require 'package)
 
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
                          ("marmalade" . "http://marmalade-repo.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")
                          ("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")))
 
+(package-initialize)
+
 (add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(clojure-mode . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(inf-clojure . "melpa-stable") t)
 
-(package-initialize)
-
 (when (not package-archive-contents)
   (package-refresh-contents))
+
+(setq url-http-attempt-keepalives nil)
 
 (defvar my-packages '(starter-kit
                       starter-kit-lisp
@@ -178,8 +180,8 @@
 (require 'clj-refactor)
 (add-hook 'clojure-mode-hook (lambda ()
                                (clj-refactor-mode 1)
+                               (yas/minor-mode 1)
                                (cljr-add-keybindings-with-prefix "C-c C-x")))
-(add-hook 'clojure-mode-hook (lambda () (yas/minor-mode 1)))
 
 ;; Stop SLIME's REPL from grabbing DEL,
 ;; which is annoying when backspacing over a '('
@@ -324,8 +326,11 @@ Display the results in a hyperlinked *compilation* buffer."
  '(custom-enabled-themes (quote (distinguished)))
  '(custom-safe-themes
    (quote
-    ("774c80b518fbf8613d1a281c7624c021186c8cf24fc842b5c65461604ece9cfc" default)))
+    ("14225e826195202fbc17dcf333b94d91deb6e6f5ca3f5a75357009754666822a" default)))
  '(fci-rule-color "#383838")
+ '(package-selected-packages
+   (quote
+    (cider cider-decompile discover-clj-refactor ack-and-a-half slamhound clj-refactor align-cljlet jinja2-mode restclient git-messenger projectile flx-ido fuzzy popup ace-jump-mode yaml-mode exec-path-from-shell highlight-symbol markdown-mode coffee-mode company inf-clojure clojure-mode dockerfile-mode highlight starter-kit-eshell starter-kit-js starter-kit-ruby starter-kit-bindings starter-kit-lisp starter-kit)))
  '(vc-annotate-background "#2b2b2b")
  '(vc-annotate-color-map
    (quote
@@ -347,24 +352,23 @@ Display the results in a hyperlinked *compilation* buffer."
      (320 . "#8cd0d3")
      (340 . "#94bff3")
      (360 . "#dc8cc3"))))
- '(vc-annotate-very-old-color "#dc8cc3")
- '(xterm-mouse-mode t))
+ '(vc-annotate-very-old-color "#dc8cc3"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(linum ((t (:inherit default)))))
+ )
 
 
 ;; Scrolling!!!!
 (global-set-key [mouse-4] '(lambda ()
-                            (interactive)
-                            (scroll-down 1)))
+                             (interactive)
+                             (scroll-down 1)))
 (global-set-key [mouse-5] '(lambda ()
-                            (interactive)
-                            (scroll-up 1)))
-
+                             (interactive)
+                             (scroll-up 1)))
 
 ;; Friendly scrolling in the terminal
 (xterm-mouse-mode)
+(setq magit-last-seen-setup-instructions "1.4.0")
