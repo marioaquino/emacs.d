@@ -19,38 +19,51 @@
 (add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(clojure-mode . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(inf-clojure . "melpa-stable") t)
+(add-to-list 'package-pinned-packages '(web-mode . "melpa-stable") t)
 
 (when (not package-archive-contents)
   (package-refresh-contents))
 
 (setq url-http-attempt-keepalives nil)
 
-(defvar my-packages '(starter-kit
-                      starter-kit-lisp
-                      starter-kit-bindings
-                      starter-kit-ruby
-                      starter-kit-js
-                      starter-kit-eshell
-                      highlight
-                      dockerfile-mode
-                      clojure-mode
-                      inf-clojure
-                      company
-                      clj-refactor
-                      coffee-mode
-                      markdown-mode
-                      highlight-symbol
+(defvar my-packages '(ace-jump-mode
+                      ag
+                      bundler
                       cider
+                      clj-refactor
+                      clojure-mode
+                      coffee-mode
+                      company
                       exec-path-from-shell
-                      yaml-mode
-                      ace-jump-mode
-                      popup
-                      fuzzy
+                      enh-ruby-mode
+                      fiplr
                       flx-ido
+                      fuzzy
+                      haml-mode
+                      highlight
+                      highlight-symbol
+                      inf-clojure
+                      inf-ruby
+                      jinja2-mode
+                      json-mode
+                      markdown-mode
+                      neotree
+                      popup
                       projectile
-                      git-messenger
+                      projectile-rails
                       restclient
-                      jinja2-mode)
+                      robe
+                      rspec-mode
+                      rvm
+                      sass-mode
+                      scss-mode
+                      starter-kit
+                      starter-kit-bindings
+                      starter-kit-eshell
+                      starter-kit-js
+                      starter-kit-lisp
+                      starter-kit-ruby
+                      yaml-mode)
   "A list of packages to ensure are installed at launch.")
 
 (defun install-package (package)
@@ -154,6 +167,7 @@
 (global-set-key "\C-c\C-k" 'kill-region)
 
 (global-set-key [f5] 'call-last-kbd-macro)
+(global-set-key [f8] 'neotree-toggle)
 
 ;; find file in project
 (require 'find-file-in-project)
@@ -174,9 +188,6 @@
 
 (add-hook 'clojure-mode-hook (lambda () (paredit-mode +1)))
 
-(require 'hl-sexp)
-(add-hook 'clojure-mode-hook (lambda () (hl-sexp-mode +1)))
-
 (require 'clj-refactor)
 (add-hook 'clojure-mode-hook (lambda ()
                                (clj-refactor-mode 1)
@@ -192,9 +203,9 @@
 
 
 ;; cider
-(add-hook 'cider-interaction-mode-hook 'cider-turn-on-eldoc-mode)
+(add-hook 'cider-interaction-mode-hook 'eldoc-mode)
 (add-hook 'cider-mode-hook (lambda ()
-                             (cider-turn-on-eldoc-mode)
+                             (eldoc-mode)
                              (paredit-mode +1)
                              (fix-paredit-repl)
                              (local-set-key (kbd "C-c k") 'cider-refresh)))
@@ -286,25 +297,6 @@ Display the results in a hyperlinked *compilation* buffer."
           (set-visited-file-name new-name)
           (set-buffer-modified-p nil)))))))
 
-;; python jedi
-
-;; need to have epc and jedi installed
-;; (setq jedi:setup-keys t)
-;; (add-hook 'python-mode-hook 'jedi:setup)
-;; (add-hook 'python-mode-hook 'auto-complete-mode)
-;; (put 'upcase-region 'disabled nil)
-
-
-;; tern
-;; (add-to-list 'load-path "~/src/github/tern/emacs/")
-;; (autoload 'tern-mode "tern.el" nil t)
-;; (add-hook 'js-mode-hook (lambda () (tern-mode t)))
-
-
-
-;; git-messenger
-(require 'git-messenger)
-
 (defun byte-compile-init-dir ()
   "Byte-compile all your dotfiles."
   (interactive)
@@ -326,11 +318,8 @@ Display the results in a hyperlinked *compilation* buffer."
  '(custom-enabled-themes (quote (distinguished)))
  '(custom-safe-themes
    (quote
-    ("14225e826195202fbc17dcf333b94d91deb6e6f5ca3f5a75357009754666822a" default)))
+    ("774c80b518fbf8613d1a281c7624c021186c8cf24fc842b5c65461604ece9cfc" default)))
  '(fci-rule-color "#383838")
- '(package-selected-packages
-   (quote
-    (cider cider-decompile discover-clj-refactor ack-and-a-half slamhound clj-refactor align-cljlet jinja2-mode restclient git-messenger projectile flx-ido fuzzy popup ace-jump-mode yaml-mode exec-path-from-shell highlight-symbol markdown-mode coffee-mode company inf-clojure clojure-mode dockerfile-mode highlight starter-kit-eshell starter-kit-js starter-kit-ruby starter-kit-bindings starter-kit-lisp starter-kit)))
  '(vc-annotate-background "#2b2b2b")
  '(vc-annotate-color-map
    (quote
@@ -352,7 +341,8 @@ Display the results in a hyperlinked *compilation* buffer."
      (320 . "#8cd0d3")
      (340 . "#94bff3")
      (360 . "#dc8cc3"))))
- '(vc-annotate-very-old-color "#dc8cc3"))
+ '(vc-annotate-very-old-color "#dc8cc3")
+ '(xterm-mouse-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -372,3 +362,42 @@ Display the results in a hyperlinked *compilation* buffer."
 ;; Friendly scrolling in the terminal
 (xterm-mouse-mode)
 (setq magit-last-seen-setup-instructions "1.4.0")
+
+(add-hook 'projectile-mode-hook 'projectile-rails-on)
+
+(setq fiplr-ignored-globs '((directories (".git" ".svn" "tmp"))
+                            (files ("*.jpg" "*.png" "*.zip" "*~"))))
+
+(global-set-key (kbd "C-x f") 'fiplr-find-file)
+
+(rvm-use-default)
+
+(require 'bundler)
+(require 'rspec-mode)
+
+(add-hook 'compilation-filter-hook 'inf-ruby-auto-enter)
+(add-hook 'ruby-mode-hook 'robe-mode)
+(add-hook 'enh-ruby-mode-hook 'robe-mode)
+(add-hook 'enh-ruby-mode 'electric-pair-mode)
+
+(add-to-list 'auto-mode-alist
+             '("\\(?:\\.rb\\|ru\\|rake\\|thor\\|jbuilder\\|gemspec\\|podspec\\|/\\(?:Gem\\|Rake\\|Cap\\|Thor\\|Vagrant\\|Guard\\|Pod\\)file\\)\\'" . enh-ruby-mode))
+
+(defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
+  (rvm-activate-corresponding-ruby))
+
+(eval-after-load 'company
+  '(push 'company-robe company-backends))
+
+
+;; Set C-f to find-file
+;; Emacs binding
+(global-set-key (kbd "C-f") 'fiplr-find-file)
+
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+;; Backup autosave files to /tmp
+(setq backup-directory-alist
+          `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+          `((".*" ,temporary-file-directory t)))
