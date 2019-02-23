@@ -36,7 +36,7 @@
                   clj-refactor
                   clojure-mode
                   company
-		              distinguished-theme
+                  distinguished-theme
                   enh-ruby-mode
                   exec-path-from-shell
                   flycheck
@@ -56,7 +56,7 @@
                   magit
                   markdown-mode
                   neotree
-		              paredit
+                  paredit
                   popup
                   projectile
                   projectile-rails
@@ -64,6 +64,7 @@
                   robe
                   rspec-mode
                   rvm
+                  smex
                   solarized-theme
                   yaml-mode)
 "A list of packages to ensure are installed at launch.")
@@ -101,7 +102,10 @@
 
 (setq ispell-program-name "aspell")
 (menu-bar-mode -1)
-(setq initial-buffer-choice 'xah-new-empty-buffer)
+
+(setq inhibit-splash-screen t)
+(switch-to-buffer "*scratch*")
+(delete-other-windows)
 
 ;; CODING STYLES
 ;;--------------------------------------------------
@@ -161,10 +165,9 @@
 ;; KEYBINDINGS
 ;;--------------------------------------------------
 
-
-;; steve yegges's suggested keybindings
-(global-set-key "\C-x\C-m" 'smex)
-(global-set-key "\C-c\C-m" 'smex)
+(require 'smex)
+(global-set-key (kbd "M-x") 'smex)
+(global-set-key (kbd "M-X") 'smex-major-mode-commands)
 
 (global-set-key "\C-w" 'backward-kill-word)
 (global-set-key "\C-x\C-k" 'kill-region)
@@ -173,6 +176,8 @@
 (global-set-key [f5] 'call-last-kbd-macro)
 (global-set-key [f8] 'neotree-toggle)
 
+(global-set-key (kbd "C-c p h") 'helm-projectile)
+(global-set-key (kbd "C-c a g") 'helm-projectile-ag)
 
 ;; slime and paredit
 (defun fix-paredit-repl ()
@@ -278,8 +283,6 @@ Display the results in a hyperlinked *compilation* buffer."
 (interactive)
 (compile "lein kibit"))
 
-
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 
 ;; rename file and buffer
 (defun rename-file-and-buffer ()
