@@ -259,6 +259,9 @@ t)
 
 (global-auto-revert-mode 1)
 
+;; Setting to prevent prompting before loading clj files
+(setq enable-local-variables :safe)
+
 (defun revert-all-buffers ()
 "Refreshes all open buffers from their respective files."
 (interactive)
@@ -463,3 +466,9 @@ Display the results in a hyperlinked *compilation* buffer."
 
 ;; Allow Emacs to use more system memory to avoid more frequent GC runs
 (setq gc-cons-threshold 20000000)
+
+;;(setq cider-default-cljs-repl 'shadow)
+;; ClojureScript cider setup
+;;(setq cider-cljs-lein-repl
+;;      "(do (user/go)
+;;           (user/cljs-repl))")
