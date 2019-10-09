@@ -133,6 +133,7 @@
 
 ;; show line numbers
 (global-linum-mode t)
+(setq linum-format "%4d \u2502 ")
 
 (show-paren-mode 1)
 
