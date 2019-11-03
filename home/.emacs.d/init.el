@@ -1,5 +1,6 @@
-;; PACKAGES
-;;--------------------------------------------------
+;;; package --- Summary
+;;; Commentary:
+;;; Code:
 
 ;; dir to store all extra extensions
 (setq dotfiles-dir (file-name-directory
@@ -8,125 +9,64 @@
 (make-directory tmp-dir t)
 
 (require 'package)
-
-(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-                      ;;("marmalade" . "http://marmalade-repo.org/packages/")
-                      ;;("melpa" . "http://melpa.milkbox.net/packages/")
-                      ("melpa" . "https://melpa.org/packages/")
-                      ;;("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")
-                      ("melpa-stable" . "https://stable.melpa.org/packages/")))
+(setq package-enable-at-startup nil)
+(setq package-archives '(
+                         ;;("melpa" . "http://melpa.milkbox.net/packages/")
+                         ("melpa" . "https://melpa.org/packages/")
+                         ;;("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")
+                         ("melpa-stable" . "https://stable.melpa.org/packages/")
+                         ;;("marmalade" . "https://marmalade-repo.org/packages/")
+                         ("gnu" . "https://elpa.gnu.org/packages/")))
 
 (package-initialize)
-
-(add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
-(add-to-list 'package-pinned-packages '(clojure-mode . "melpa-stable") t)
-(add-to-list 'package-pinned-packages '(inf-clojure . "melpa-stable") t)
-(add-to-list 'package-pinned-packages '(web-mode . "melpa-stable") t)
-
-(when (not package-archive-contents)
-(package-refresh-contents))
 
 (setq url-http-attempt-keepalives nil)
 
 ;; (setq debug-on-error t)
 
-(defvar my-packages '(ace-jump-mode
-                  bundler
-                  cider
-                  clj-refactor
-                  clojure-mode
-                  company
-                  distinguished-theme
-                  enh-ruby-mode
-                  exec-path-from-shell
-                  flycheck
-                  flycheck-color-mode-line
-                  flycheck-joker
-                  fuzzy
-                  helm
-                  helm-ag
-                  helm-projectile
-                  highlight
-                  highlight-symbol
-                  idle-highlight-mode
-                  inf-clojure
-                  inf-ruby
-                  jinja2-mode
-                  json-mode
-                  magit
-                  markdown-mode
-                  neotree
-                  paredit
-                  popup
-                  projectile
-                  projectile-rails
-                  restclient
-                  robe
-                  rspec-mode
-                  rvm
-                  smex
-                  solarized-theme
-                  yaml-mode)
-"A list of packages to ensure are installed at launch.")
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
 
-(defun install-package (package)
-(when (not (package-installed-p package))
-(package-install package)))
+(eval-when-compile
+  (require 'use-package))
 
-(dolist (p my-packages)
-(install-package p))
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
 
-;; ENVIRONMENT
-;;--------------------------------------------------
+(add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
+
+(when (not package-archive-contents)
+  (package-refresh-contents))
 
 (when (memq window-system '(mac ns))
-(x-focus-frame nil)
-(exec-path-from-shell-initialize))
+  (x-focus-frame nil)
+  (exec-path-from-shell-initialize))
 
 (defun load-system-specific-configs (postfix)
-"Load system specific/user specific files if around"
-(setq system-specific-config (concat dotfiles-dir "user/" system-name postfix ".el")
-      user-specific-config (concat dotfiles-dir "user/" user-login-name postfix ".el")
-      user-specific-dir (concat dotfiles-dir "user/" user-login-name postfix))
-(add-to-list 'load-path user-specific-dir)
+  "Load system specific/user specific files if around."
+  (setq system-specific-config (concat dotfiles-dir "user/" (system-name) postfix ".el")
+        user-specific-config (concat dotfiles-dir "user/" user-login-name postfix ".el")
+        user-specific-dir (concat dotfiles-dir "user/" user-login-name postfix))
+  (add-to-list 'load-path user-specific-dir)
 
-(if (file-exists-p system-specific-config) (load system-specific-config))
-(if (file-exists-p user-specific-config) (load user-specific-config))
-(if (file-exists-p user-specific-dir)
-    (mapc #'load (directory-files user-specific-dir nil ".*el$"))))
+  (if (file-exists-p system-specific-config) (load system-specific-config))
+  (if (file-exists-p user-specific-config) (load user-specific-config))
+  (if (file-exists-p user-specific-dir)
+      (mapc #'load (directory-files user-specific-dir nil ".*el$"))))
 
 (load-system-specific-configs "")
 
 (setq vendor-dir (concat dotfiles-dir "/vendor"))
 (add-to-list 'load-path vendor-dir)
 
-(setq ispell-program-name "aspell")
+;; (setq ispell-program-name "aspell")
 (menu-bar-mode -1)
 
 (setq inhibit-splash-screen t)
 (switch-to-buffer "*scratch*")
 (delete-other-windows)
 
-;; CODING STYLES
-;;--------------------------------------------------
-
-;; smooth-scrolling stops that annoying jump when moving around
-(require 'smooth-scrolling)
-
-;; makes sexps flash when you eval them!
-(require 'highlight)
-
-(require 'highlight-symbol)
-(global-set-key [(control f3)] 'highlight-symbol)
-(global-set-key [f3] 'highlight-symbol-next)
-(global-set-key [(shift f3)] 'highlight-symbol-prev)
-(global-set-key [(meta f3)] 'highlight-symbol-query-replace)
-
-(require 'eval-sexp-fu)
-(require 'nrepl-eval-sexp-fu)
-(setq nrepl-eval-sexp-fu-flash-duration 0.5)
-
-;; use inconsolata
 (set-face-attribute 'default nil
                   :family "Inconsolata"
                   :height 160)
@@ -150,89 +90,446 @@
   (load-theme user-specific-color-theme t)
 (load-theme 'zenburn t))
 
-
-(set-face-foreground 'region "white")
-(set-face-background 'region "blue")
-
-;; PROJECtile settings
-
-(projectile-global-mode)
-(setq projectile-project-root-files
-    (quote
-      ("rebar.config" "project.clj" "pom.xml" "build.sbt" "build.gradle" "Gemfile" "requirements.txt" "package.json" "gulpfile.js" "Gruntfile.js" "bower.json" "composer.json" "Cargo.toml" "mix.exs" ".git" ".projectile_root")))
-(setq projectile-project-root-files-bottom-up (quote (".projectile" ".hg" ".fslckout" ".bzr" "_darcs")))
-(setq projectile-file-exists-remote-cache-expire (* 10 60))
-
 ;; KEYBINDINGS
 ;;--------------------------------------------------
-
-(require 'smex)
-(global-set-key (kbd "M-x") 'smex)
-(global-set-key (kbd "M-X") 'smex-major-mode-commands)
 
 (global-set-key "\C-w" 'backward-kill-word)
 (global-set-key "\C-x\C-k" 'kill-region)
 (global-set-key "\C-c\C-k" 'kill-region)
 
 (global-set-key [f5] 'call-last-kbd-macro)
-(global-set-key [f8] 'neotree-toggle)
 
-(global-set-key (kbd "C-c p h") 'helm-projectile)
-(global-set-key (kbd "C-c a g") 'helm-projectile-ag)
+;;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-;; slime and paredit
-(defun fix-paredit-repl ()
-(interactive)
-(local-set-key "{" 'paredit-open-curly)
-(local-set-key "}" 'paredit-close-curly)
-(modify-syntax-entry ?\{ "(}")
-(modify-syntax-entry ?\} "){")
-(modify-syntax-entry ?\[ "(]")
-(modify-syntax-entry ?\] ")["))
+(use-package exec-path-from-shell
+  :config
+  (exec-path-from-shell-initialize))
 
-(add-hook 'slime-repl-mode-hook (lambda () (paredit-mode +1) (fix-paredit-repl)))
+(use-package use-package-ensure-system-package)
 
-(add-hook 'clojure-mode-hook (lambda () (paredit-mode +1)))
+(use-package multiple-cursors
+  :init
+  (global-set-key (kbd "H-@") 'mc/edit-lines)
+  (global-set-key (kbd "H->") 'mc/mark-next-like-this)
+  (global-set-key (kbd "H-<") 'mc/mark-previous-like-this)
+  (global-set-key (kbd "s-@") 'mc/mark-all-like-this-dwim))
 
-(require 'clj-refactor)
-(add-hook 'clojure-mode-hook (lambda ()
-                              (clj-refactor-mode 1)
-                              (yas/minor-mode 1)
-                              (cljr-add-keybindings-with-prefix "C-c C-x")))
+(use-package company
+  :init
+  (global-company-mode)
+  :config
+  (global-set-key (kbd "<M-tab>") 'company-complete)
+  (setq company-idle-delay 0.2)
+  (setq company-minimum-prefix-length 2))
 
-;; Stop SLIME's REPL from grabbing DEL,
-;; which is annoying when backspacing over a '('
-(defun override-slime-repl-bindings-with-paredit ()
-(define-key slime-repl-mode-map
-  (read-kbd-macro paredit-backward-delete-key) nil))
-(add-hook 'slime-repl-mode-hook 'override-slime-repl-bindings-with-paredit)
+(use-package distinguished-theme)
 
+(use-package clojure-mode
+  :pin melpa-stable
 
-;; cider
-(add-hook 'cider-interaction-mode-hook 'eldoc-mode)
-(add-hook 'cider-mode-hook (lambda ()
-                            (eldoc-mode)
-                            (paredit-mode +1)
-                            (fix-paredit-repl)
-                            (local-set-key (kbd "C-c k") 'cider-refresh)))
-(add-hook 'cider-mode-hook 'company-mode)
+  :init
+  (setq clojure-indent-style 'always-indent)
 
-(add-hook 'cider-repl-mode-hook 'paredit-mode)
-(add-hook 'cider-repl-mode-hook 'company-mode)
+  :after flycheck-clj-kondo
 
-(setq cider-repl-popup-stacktraces t)
-(setq cider-auto-select-error-buffer t)
-(setq cider-repl-wrap-history t)
+  :bind
+  (("H-t H-f" . 'clojure-thread-first-all)
+   ("H-t H-l" . 'clojure-thread-last-all)
+   ("H-t H-u" . 'clojure-unwind-all))
 
-;; specify the print length to be 100 to stop infinite sequences
-;; killing things.
-(setq cider-repl-print-length 100)
+  :config
+  (require 'flycheck-clj-kondo)
+  (defun ~/clojure/scratch ()
+    "Create/retrieve a Clojure scratch buffer and switch to it"
+    (interactive)
+    (let ((buf (get-buffer-create "*clj-scratch*")))
+      (switch-to-buffer buf)
+      (clojure-mode)))
 
-;; Company mode all over.
-(add-hook 'after-init-hook 'global-company-mode)
-(global-set-key (kbd "<M-tab>") 'company-complete)
-(setq company-idle-delay 0.2)
-(setq company-minimum-prefix-length 2)
+  (defun ~/clojure/string-name (s)
+    (substring s 1 -1))
+
+  (defun ~/clojure/keyword-name (s)
+    (substring s 1))
+
+  (defun ~/clojure/delete-and-extract-sexp ()
+    (let* ((begin (point)))
+      (forward-sexp)
+      (let* ((result (buffer-substring-no-properties begin (point))))
+        (delete-region begin (point))
+        result)))
+
+  (defun ~/clojure/toggle-keyword-string ()
+    (interactive)
+    (save-excursion
+      (if (equal 1 (point))
+          nil
+        (cond
+         ((equal "\"" (char-at-point))
+          (insert ":" (~/clojure/string-name
+                       (~/clojure/delete-and-extract-sexp))))
+         ((equal ":" (char-at-point))
+          (insert "\"" (~/clojure/keyword-name
+                        (~/clojure/delete-and-extract-sexp)) "\""))
+         (t (progn
+              (backward-char)
+              (~/clojure/toggle-keyword-string)))))))
+
+  (add-hook 'clojure-mode-hook
+            (lambda ()
+              (paredit-mode +1)
+              (turn-on-eldoc-mode)
+              (put-clojure-indent 'fact 'defun)
+              (put-clojure-indent 'facts 'defun)
+              (put-clojure-indent 'future-fact 'defun)
+              (put-clojure-indent 'future-facts 'defun)))
+
+  (define-key clojure-mode-map
+    (kbd "s-:")
+    '~/clojure/toggle-keyword-string)
+
+  (global-set-key (kbd "C-s-x") '~/clojure/scratch))
+
+(use-package cider
+  :pin melpa-stable
+  :init
+  (setq cider-repl-history-size 10000)
+  (setq cider-repl-history-file "~/.cider/history")
+  (setq cider-prompt-for-symbol nil)
+
+  (setq cider-repl-use-clojure-font-lock t)
+  (setq nrepl-hide-special-buffers t)
+  (setq cider-popup-stacktraces nil)
+  (setq cider-repl-tab-command #'indent-for-tab-command)
+  (setq cider-repl-result-prefix ";; => ")
+  (setq cider-font-lock-dynamically '(macro core function var))
+  (setq cider-test-show-report-on-success t)
+  (setq cider-repl-popup-stacktraces t)
+  (setq cider-auto-select-error-buffer t)
+  (setq cider-repl-wrap-history t)
+
+  ;; specify the print length to be 100 to stop infinite sequences
+  ;; killing things.
+  (setq cider-repl-print-length 100)
+
+  :config
+  (define-key cider-repl-mode-map (kbd "s-<up>") 'cider-repl-backward-input)
+  (define-key cider-repl-mode-map (kbd "s-<down>") 'cider-repl-forward-input)
+
+  (define-key cider-mode-map
+    (kbd "C-c C-j") 'cider-find-dwim)
+
+  (evil-define-key
+    'normal cider-popup-buffer-mode-map
+    (kbd "q") 'quit-window)
+
+  (evil-define-key
+    'normal cider-docview-mode-map
+    (kbd "q") 'quit-window)
+
+  (evil-define-key
+    'normal cider-stacktrace-mode-map
+    (kbd "q") 'quit-window)
+
+  (evil-define-key
+    'normal cider-mode-map
+    (kbd ",e") '~/clojure/cider-eval-expression-at-point-in-repl)
+
+  (evil-define-key
+    'normal cider-mode-map
+    (kbd ",l") 'cider-load-file)
+
+  (evil-define-key
+    'normal cider-mode-map
+    (kbd ",d") 'cider-doc)
+
+  (add-hook 'cider-mode-hook (lambda ()
+                               (company-mode)
+                               (eldoc-mode)
+                               (paredit-mode +1)
+                               (fix-paredit-repl)
+                               (local-set-key (kbd "C-c k") 'cider-refresh)))
+  (add-hook 'cider-repl-mode-hook (lambda ()
+                                    (eldoc-mode)
+                                    (paredit-mode +1)
+                                    (company-mode)))
+  (add-hook 'cider-interaction-mode-hook 'eldoc-mode)
+  :catch (lambda (keyword err)
+           (message (error-message-string err))))
+
+(use-package clj-refactor
+  :after clojure-mode
+  :config
+  (add-hook 'clojure-mode-hook (lambda ()
+                                 (clj-refactor-mode 1)
+                                 (yas-minor-mode 1)
+                                 ;; insert keybinding setup here
+                                 (cljr-add-keybindings-with-prefix "C-c C-m")
+                                 (dolist (mapping '(("async" . "clojure.core.async")
+                                                    ("gen"   . "clojure.spec.gen.alpha")
+                                                    ("json"  . "cheshire.core")
+                                                    ("log"   . "clojure.tools.logging")
+                                                    ("prop"  . "clojure.test.check.properties")
+                                                    ("s"     . "clojure.spec.alpha")
+                                                    ("stest" . "clojure.spec.test.alpha")
+                                                    ("t"     . "clojure.test")
+                                                    ("tc"    . "clojure.test.check.clojure-test")))
+                                   (add-to-list 'cljr-magic-require-namespaces mapping t))))
+  :catch (lambda (keyword err)
+           (message (error-message-string err))))
+
+(use-package evil
+  :config
+  (evil-mode t)
+
+  (defun ~/evil/backward-char-crosslines ()
+    (interactive)
+    (evil-backward-char 1 t))
+
+  (defun ~/evil/forward-char-crosslines ()
+    (interactive)
+    (evil-forward-char 1 t))
+
+  (define-key evil-motion-state-map
+    (kbd "<left>") '~/evil/backward-char-crosslines)
+  (define-key evil-motion-state-map
+    (kbd "<right>") '~/evil/forward-char-crosslines)
+  (define-key evil-motion-state-map
+    (kbd "C-y") 'yank)
+  (define-key evil-insert-state-map
+    (kbd "C-k") 'kill-line)
+  (define-key evil-insert-state-map
+    (kbd "C-M-k") 'kill-word)
+  (define-key evil-insert-state-map
+    (kbd "C-y") 'yank))
+
+(use-package evil-paredit)
+
+(use-package evil-mc
+  :config
+  (global-set-key (kbd "H--") 'evil-mc-mode)
+  (define-key evil-mc-key-map (kbd "C-g") 'evil-mc-undo-all-cursors)
+  (evil-define-key 'visual evil-mc-key-map
+    "A" #'evil-mc-make-cursor-in-visual-selection-end
+    "I" #'evil-mc-make-cursor-in-visual-selection-beg))
+
+(use-package ws-butler
+  :init (ws-butler-global-mode 1))
+
+(use-package magit
+  :init
+  (global-set-key (kbd "C-x g")   'magit-status)
+  (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup))
+
+(use-package aggressive-indent)
+
+(use-package undo-tree
+  :init
+  (global-undo-tree-mode))
+
+(use-package json-mode)
+
+(use-package markdown-mode)
+
+(use-package yaml-mode)
+
+(use-package highlight)
+
+(use-package highlight-symbol
+  :config
+  (global-set-key [(control f3)] 'highlight-symbol)
+  (global-set-key [f3] 'highlight-symbol-next)
+  (global-set-key [(shift f3)] 'highlight-symbol-prev)
+  (global-set-key [(meta f3)] 'highlight-symbol-query-replace))
+
+(use-package idle-highlight-mode
+  :config
+  (set-face-foreground 'region "white")
+  (set-face-background 'region "blue")
+  :hook prog-mode)
+
+(use-package neotree
+  :config
+  (global-set-key [f8] 'neotree-toggle))
+
+(use-package cider-eval-sexp-fu
+  :after cider)
+
+(use-package projectile
+  :init
+  (setq projectile-project-root-files
+        (quote
+         ("rebar.config" "project.clj" "pom.xml" "build.sbt" "build.gradle" "Gemfile" "requirements.txt" "package.json" "gulpfile.js" "Gruntfile.js" "bower.json" "composer.json" "Cargo.toml" "mix.exs" ".git" ".projectile_root")))
+  (setq projectile-project-root-files-bottom-up (quote (".projectile" ".hg" ".fslckout" ".bzr" "_darcs")))
+  (setq projectile-file-exists-remote-cache-expire (* 10 60))
+  :config
+  (projectile-mode))
+
+(use-package popup)
+
+(use-package helm)
+
+(use-package helm-projectile
+  :after (helm projectile popup)
+  :config
+  (global-set-key (kbd "C-c p h") 'helm-projectile))
+
+(use-package helm-ag
+  :after (helm projectile popup)
+  :config
+  (global-set-key (kbd "C-c a g") 'helm-projectile-ag))
+
+(use-package smex
+  :config
+  (require 'smex)
+  (global-set-key (kbd "M-x") 'smex)
+  (global-set-key (kbd "M-X") 'smex-major-mode-commands))
+
+(use-package flycheck
+  :init
+  (global-flycheck-mode)
+  :config
+  (set-face-attribute 'flycheck-error nil :underline '(:color "red2" :style wave)))
+
+(use-package flycheck-color-mode-line
+  :requires flycheck
+  :hook (flycheck-mode . flycheck-color-mode-line-mode))
+
+(use-package flycheck-clj-kondo)
+
+(use-package paredit
+  :config
+  (defun ~/paredit/wrap-quote ()
+    "Wrap the following sexp in double quotes."
+    (interactive)
+    (save-excursion
+      (insert "\"")
+      (forward-sexp)
+      (insert "\"")))
+
+  (defun ~/paredit/forward-transpose-sexps ()
+    (interactive)
+    (paredit-forward)
+    (transpose-sexps 1)
+    (paredit-backward))
+
+  (defun ~/paredit/backward-transpose-sexps ()
+    (interactive)
+    (transpose-sexps 1)
+    (paredit-backward)
+    (paredit-backward))
+
+  (defun ~/paredit/forward-kill-and-insert ()
+    (interactive)
+    (paredit-kill)
+    (evil-insert-state))
+
+  (defun ~/paredit/define-evil-keys ()
+    ;; Normal state
+    (define-key evil-normal-state-local-map
+      "W(" 'paredit-wrap-round)
+    (define-key evil-normal-state-local-map
+      "W[" 'paredit-wrap-square)
+    (define-key evil-normal-state-local-map
+      "W{" 'paredit-wrap-curly)
+    (define-key evil-normal-state-local-map
+      "W\"" '~/paredit/wrap-quote)
+    (define-key evil-normal-state-local-map
+      "(" 'paredit-backward-slurp-sexp)
+    (define-key evil-normal-state-local-map
+      ")" 'paredit-backward-barf-sexp)
+    (define-key evil-normal-state-local-map
+      "{" 'paredit-forward-barf-sexp)
+    (define-key evil-normal-state-local-map
+      "}" 'paredit-forward-slurp-sexp)
+    (define-key evil-normal-state-local-map
+      (kbd "C-S-r") 'paredit-raise-sexp)
+    (define-key evil-normal-state-local-map
+      "S" 'paredit-splice-sexp)
+    (define-key evil-normal-state-local-map
+      "s" 'paredit-split-sexp)
+    (define-key evil-normal-state-local-map
+      "T" '~/paredit/backward-transpose-sexps)
+    (define-key evil-normal-state-local-map
+      "t" '~/paredit/forward-transpose-sexps)
+    (define-key evil-normal-state-local-map
+      "Y" 'paredit-copy-as-kill)
+    (define-key evil-normal-state-local-map
+      "C" '~/paredit/forward-kill-and-insert)
+    (define-key evil-normal-state-local-map
+      "D" 'paredit-kill)
+    ;; Insert state
+    (define-key evil-insert-state-local-map
+      (kbd "C-(") 'paredit-backward-slurp-sexp)
+    (define-key evil-insert-state-local-map
+      (kbd "C-)") 'paredit-backward-barf-sexp)
+    ;; ;; I don't like the inconsistency here but C-{ and C-} don't seem to
+    ;; ;; work.
+    ;; (define-key evil-insert-state-local-map
+    ;;   (kbd "C-[") 'paredit-forward-barf-sexp)
+    ;; (define-key evil-insert-state-local-map
+    ;;   (kbd "C-]") 'paredit-forward-slurp-sexp)
+
+    (define-key evil-insert-state-local-map
+      (kbd "C-k") 'paredit-kill)
+    (define-key evil-insert-state-local-map
+      (kbd "C-M-k") 'kill-sexp)
+    (define-key evil-insert-state-local-map
+      (kbd "C-y") 'yank))
+
+  (defun ~/paredit-mode ()
+    (paredit-mode t)
+    (~/paredit/define-evil-keys))
+
+  (defun paredit-wrap-round-from-behind ()
+    (interactive)
+    (save-excursion  (forward-sexp -1)
+                     (paredit-wrap-round)))
+
+  (defun paredit-wrap-square-from-behind ()
+    (interactive)
+    (save-excursion (forward-sexp -1)
+                    (paredit-wrap-square)))
+
+  (defun paredit-wrap-curly-from-behind ()
+    (interactive)
+    (save-excursion (forward-sexp -1)
+                    (paredit-wrap-curly)))
+
+  (define-key paredit-mode-map (kbd "s-s")       'paredit-forward-slurp-sexp)
+  (define-key paredit-mode-map (kbd "s-b")       'paredit-forward-barf-sexp)
+  (define-key paredit-mode-map (kbd "C-<right>") 'paredit-forward-slurp-sexp)
+  (define-key paredit-mode-map (kbd "C-<left>")  'paredit-forward-barf-sexp)
+
+  (define-key paredit-mode-map (kbd "M-(")       'paredit-wrap-round)
+  (define-key paredit-mode-map (kbd "M-)")       'paredit-wrap-round-from-behind)
+  (define-key paredit-mode-map (kbd "s-[")       'paredit-wrap-square)
+  (define-key paredit-mode-map (kbd "s-]")       'paredit-wrap-square-from-behind)
+  (define-key paredit-mode-map (kbd "s-{")       'paredit-wrap-curly)
+  (define-key paredit-mode-map (kbd "s-}")       'paredit-wrap-curly-from-behind)
+
+  (global-set-key (kbd "H-p")  'paredit-mode)
+
+  (defun turn-on-paredit () (~/paredit-mode))
+
+  (add-hook 'emacs-lisp-mode-hook       'turn-on-paredit)
+  (add-hook 'lisp-interaction-mode-hook 'turn-on-paredit)
+  (add-hook 'lisp-mode-hook             'turn-on-paredit)
+  (add-hook 'slime-repl-mode-hook       'turn-on-paredit)
+  (add-hook 'clojure-mode-hook          'turn-on-paredit)
+  (add-hook 'cider-repl-mode-hook       'turn-on-paredit)
+
+  ;; Stop SLIME's REPL from grabbing DEL,
+  ;; which is annoying when backspacing over a '('
+  (defun override-slime-repl-bindings-with-paredit ()
+    (define-key slime-repl-mode-map
+      (read-kbd-macro paredit-backward-delete-key) nil))
+
+  (add-hook 'slime-repl-mode-hook 'override-slime-repl-bindings-with-paredit))
+
+(add-hook 'slime-repl-mode-hook (lambda ()
+                                  (paredit-mode +1)
+                                  (fix-paredit-repl)))
 
 ;;
 (setq erc-hide-list '("JOIN" "PART" "QUIT"))
@@ -241,169 +538,50 @@
 (add-to-list 'auto-mode-alist '("\\.markdown$" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
 
-;; ace jump mode
-(autoload
-'ace-jump-mode
-"ace-jump-mode"
-"Emacs quick move minor mode"
-t)
-(define-key global-map (kbd "C-c SPC") 'ace-jump-mode)
-
-(autoload
-'ace-jump-mode-pop-mark
-"ace-jump-mode"
-"Ace jump back:-)"
-t)
-(eval-after-load "ace-jump-mode"
-'(ace-jump-mode-enable-mark-sync))
-(define-key global-map (kbd "C-x SPC") 'ace-jump-mode-pop-mark)
-
 (global-auto-revert-mode 1)
 
 ;; Setting to prevent prompting before loading clj files
 (setq enable-local-variables :safe)
 
 (defun revert-all-buffers ()
-"Refreshes all open buffers from their respective files."
-(interactive)
-(dolist (buf (buffer-list))
-  (with-current-buffer buf
-    (when (and (buffer-file-name) (not (buffer-modified-p)))
-      (revert-buffer t t t) )))
-(message "Refreshed open files."))
-
-;; kibit
-;; Teach compile the syntax of the kibit output
-(require 'compile)
-(add-to-list 'compilation-error-regexp-alist-alist
-            '(kibit "At \\([^:]+\\):\\([[:digit:]]+\\):" 1 2 nil 0))
-(add-to-list 'compilation-error-regexp-alist 'kibit)
-
-;; A convenient command to run "lein kibit" in the project to which
-;; the current emacs buffer belongs to.
-(defun kibit ()
-"Run kibit on the current project.
-Display the results in a hyperlinked *compilation* buffer."
-(interactive)
-(compile "lein kibit"))
+  "Refreshes all open buffers from their respective files."
+  (interactive)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when (and (buffer-file-name) (not (buffer-modified-p)))
+        (revert-buffer t t t) )))
+  (message "Refreshed open files."))
 
 
 ;; rename file and buffer
 (defun rename-file-and-buffer ()
-"Rename the current buffer and file it is visiting."
-(interactive)
-(let ((filename (buffer-file-name)))
-  (if (not (and filename (file-exists-p filename)))
-      (message "Buffer is not visiting a file!")
-    (let ((new-name (read-file-name "New name: " filename)))
-      (cond
-        ((vc-backend filename) (vc-rename-file filename new-name))
-        (t
-        (rename-file filename new-name t)
-        (rename-buffer new-name)
-        (set-visited-file-name new-name)
-        (set-buffer-modified-p nil)))))))
+  "Rename the current buffer and file it is visiting."
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (message "Buffer is not visiting a file!")
+      (let ((new-name (read-file-name "New name: " filename)))
+        (cond
+         ((vc-backend filename) (vc-rename-file filename new-name))
+         (t
+          (rename-file filename new-name t)
+          (rename-buffer new-name)
+          (set-visited-file-name new-name)
+          (set-buffer-modified-p nil)))))))
 
 (defun byte-compile-init-dir ()
-"Byte-compile all your dotfiles."
-(interactive)
-(byte-recompile-directory user-emacs-directory))
+  "Byte-compile all your dotfiles."
+  (interactive)
+  (byte-recompile-directory user-emacs-directory))
 
 (defun scratch-buffer ()
-(interactive)
-(switch-to-buffer (make-temp-name "scratch")))
+  (interactive)
+  (switch-to-buffer (make-temp-name "scratch")))
 
 (load-system-specific-configs "-after")
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ansi-color-names-vector
-   ["#3f3f3f" "#cc9393" "#7f9f7f" "#f0dfaf" "#8cd0d3" "#dc8cc3" "#93e0e3" "#dcdccc"])
- '(cider-repl-use-pretty-printing t)
- '(compilation-message-face (quote default))
- '(cua-global-mark-cursor-color "#2aa198")
- '(cua-normal-cursor-color "#657b83")
- '(cua-overwrite-cursor-color "#b58900")
- '(cua-read-only-cursor-color "#859900")
- '(custom-enabled-themes (quote (distinguished)))
- '(custom-safe-themes
-   (quote
-    ("0d456bc74e0ffa4bf5b69b0b54dac5104512c324199e96fc9f3a1db10dfa31f3" "a8245b7cc985a0610d71f9852e9f2767ad1b852c2bdea6f4aadc12cce9c4d6d0" "d677ef584c6dfc0697901a44b885cc18e206f05114c8a3b7fde674fce6180879" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "52b5da0a421b020e2d3429f1d4929089d18a56e8e43fe7470af2cea5a6c96443" "aae95fc700f9f7ff70efbc294fc7367376aa9456356ae36ec234751040ed9168" "14225e826195202fbc17dcf333b94d91deb6e6f5ca3f5a75357009754666822a" default)))
- '(fci-rule-color "#383838")
- '(highlight-changes-colors (quote ("#d33682" "#6c71c4")))
- '(highlight-symbol-foreground-color "#586e75")
- '(highlight-tail-colors
-   (quote
-    (("#eee8d5" . 0)
-     ("#B4C342" . 20)
-     ("#69CABF" . 30)
-     ("#69B7F0" . 50)
-     ("#DEB542" . 60)
-     ("#F2804F" . 70)
-     ("#F771AC" . 85)
-     ("#eee8d5" . 100))))
- '(hl-bg-colors
-   (quote
-    ("#DEB542" "#F2804F" "#FF6E64" "#F771AC" "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")))
- '(hl-fg-colors
-   (quote
-    ("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")))
- '(magit-diff-use-overlays nil)
- '(neo-window-fixed-size nil)
- '(nrepl-message-colors
-   (quote
-    ("#dc322f" "#cb4b16" "#b58900" "#546E00" "#B4C342" "#00629D" "#2aa198" "#d33682" "#6c71c4")))
- '(package-selected-packages
-   (quote
-    (json-navigator go-mode evil-visual-mark-mode tox cider solarized-theme evil ag robe bundler projectile-rails fiplr distinguished-theme cider-decompile discover-clj-refactor ack-and-a-half slamhound clj-refactor align-cljlet jinja2-mode restclient git-messenger projectile flx-ido fuzzy popup ace-jump-mode yaml-mode exec-path-from-shell highlight-symbol markdown-mode coffee-mode company inf-clojure clojure-mode dockerfile-mode highlight starter-kit-eshell starter-kit-js starter-kit-ruby starter-kit-bindings starter-kit-lisp starter-kit)))
- '(pos-tip-background-color "#eee8d5")
- '(pos-tip-foreground-color "#586e75")
- '(python-shell-interpreter "python3")
- '(rspec-use-spring-when-possible nil)
- '(ruby-align-chained-calls t)
- '(smartrep-mode-line-active-bg (solarized-color-blend "#859900" "#eee8d5" 0.2))
- '(term-default-bg-color "#fdf6e3")
- '(term-default-fg-color "#657b83")
- '(vc-annotate-background "#2b2b2b")
- '(vc-annotate-background-mode nil)
- '(vc-annotate-color-map
-   (quote
-    ((20 . "#bc8383")
-     (40 . "#cc9393")
-     (60 . "#dfaf8f")
-     (80 . "#d0bf8f")
-     (100 . "#e0cf9f")
-     (120 . "#f0dfaf")
-     (140 . "#5f7f5f")
-     (160 . "#7f9f7f")
-     (180 . "#8fb28f")
-     (200 . "#9fc59f")
-     (220 . "#afd8af")
-     (240 . "#bfebbf")
-     (260 . "#93e0e3")
-     (280 . "#6ca0a3")
-     (300 . "#7cb8bb")
-     (320 . "#8cd0d3")
-     (340 . "#94bff3")
-     (360 . "#dc8cc3"))))
- '(vc-annotate-very-old-color "#dc8cc3")
- '(weechat-color-list
-   (quote
-    (unspecified "#fdf6e3" "#eee8d5" "#990A1B" "#dc322f" "#546E00" "#859900" "#7B6000" "#b58900" "#00629D" "#268bd2" "#93115C" "#d33682" "#00736F" "#2aa198" "#657b83" "#839496")))
- '(xterm-color-names
-   ["#eee8d5" "#dc322f" "#859900" "#b58900" "#268bd2" "#d33682" "#2aa198" "#073642"])
- '(xterm-color-names-bright
-   ["#fdf6e3" "#cb4b16" "#93a1a1" "#839496" "#657b83" "#6c71c4" "#586e75" "#002b36"]))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-
+(setq custom-file "~/.emacs.d/custom.el")
+(load custom-file 'noerror)
 
 ;; Scrolling!!!!
 (global-set-key [mouse-4] '(lambda ()
@@ -415,41 +593,8 @@ Display the results in a hyperlinked *compilation* buffer."
 
 ;; Friendly scrolling in the terminal
 (xterm-mouse-mode)
-(setq magit-last-seen-setup-instructions "1.4.0")
-
-(rvm-use-default)
-
-(add-hook 'projectile-mode-hook 'projectile-rails-on)
-
-(projectile-rails-global-mode)
-
-(require 'bundler)
-(require 'rspec-mode)
-(setq rspec-use-rvm t)
-
-(add-hook 'compilation-filter-hook 'inf-ruby-auto-enter)
-(add-hook 'ruby-mode-hook 'robe-mode)
-
-(add-hook 'enh-ruby-mode-hook 'electric-pair-mode)
-(add-hook 'after-init-hook 'inf-ruby-switch-setup)
-
-;; (add-to-list 'auto-mode-alist
-;;              '("\\(?:\\.rb\\|ru\\|rake\\|thor\\|jbuilder\\|gemspec\\|podspec\\|/\\(?:Gem\\|Rake\\|Cap\\|Thor\\|Vagrant\\|Guard\\|Pod\\)file\\)\\'" . enh-ruby-mode))
-
-(add-to-list 'auto-mode-alist
-             '("\\(?:\\.rb\\|ru\\|rake\\|thor\\|jbuilder\\|gemspec\\|podspec\\|/\\(?:Gem\\|Rake\\|Cap\\|Thor\\|Vagrant\\|Guard\\|Pod\\)file\\)\\'" . ruby-mode))
-
-(defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
-  (rvm-activate-corresponding-ruby))
-
-(eval-after-load 'company
-'(push 'company-robe company-backends))
 
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
-
-(add-hook 'prog-mode-hook
-            (lambda()
-              (idle-highlight-mode 1)))
 
 ;; Backup autosave files to /tmp
 (setq backup-directory-alist
@@ -457,19 +602,26 @@ Display the results in a hyperlinked *compilation* buffer."
 (setq auto-save-file-name-transforms
           `((".*" ,temporary-file-directory t)))
 
-(add-hook 'clojure-mode-hook
-          (lambda ()
-            (put-clojure-indent 'fact 'defun)
-            (put-clojure-indent 'facts 'defun)
-            (put-clojure-indent 'future-fact 'defun)
-            (put-clojure-indent 'future-facts 'defun)))
+
 (put 'upcase-region 'disabled nil)
 
 ;; Allow Emacs to use more system memory to avoid more frequent GC runs
 (setq gc-cons-threshold 20000000)
 
-;;(setq cider-default-cljs-repl 'shadow)
-;; ClojureScript cider setup
-;;(setq cider-cljs-lein-repl
-;;      "(do (user/go)
-;;           (user/cljs-repl))")
+;; slime and paredit
+(defun fix-paredit-repl ()
+  (interactive)
+  (local-set-key "{" 'paredit-open-curly)
+  (local-set-key "}" 'paredit-close-curly)
+  (modify-syntax-entry ?\{ "(}")
+  (modify-syntax-entry ?\} "){")
+  (modify-syntax-entry ?\[ "(]")
+  (modify-syntax-entry ?\] ")["))
+
+
+;; Local Variables:
+;; byte-compile-warnings: (not free-vars)
+;; End:
+
+(provide 'init)
+;;; init.el ends here
