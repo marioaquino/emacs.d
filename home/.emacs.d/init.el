@@ -280,7 +280,10 @@
 
 (use-package evil
   :config
+
+  ;; Enable evil mode but start Emacs in Emacs mode and allow change to evil w <Ctrl + z>
   (evil-mode t)
+  (setq evil-default-state 'emacs)
 
   (defun ~/evil/backward-char-crosslines ()
     (interactive)
