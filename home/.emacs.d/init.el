@@ -10,15 +10,19 @@
 
 (require 'package)
 (setq package-enable-at-startup nil)
-(setq package-archives '(
+(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
                          ;;("melpa" . "http://melpa.milkbox.net/packages/")
                          ("melpa" . "https://melpa.org/packages/")
                          ;;("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")
                          ("melpa-stable" . "https://stable.melpa.org/packages/")
                          ;;("marmalade" . "https://marmalade-repo.org/packages/")
-                         ("gnu" . "https://elpa.gnu.org/packages/")))
+                         ))
 
 (package-initialize)
+
+(add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
+(add-to-list 'package-pinned-packages '(clojure-mode . "melpa-stable") t)
+(add-to-list 'package-pinned-packages '(inf-clojure . "melpa-stable") t)
 
 (setq url-http-attempt-keepalives nil)
 
@@ -190,6 +194,8 @@
 
   (global-set-key (kbd "C-s-x") '~/clojure/scratch))
 
+(use-package align-cljlet)
+
 (use-package cider
   :pin melpa-stable
   :init
@@ -327,7 +333,7 @@
 (use-package aggressive-indent)
 
 (use-package undo-tree
-  :init
+  :config
   (global-undo-tree-mode))
 
 (use-package json-mode)
