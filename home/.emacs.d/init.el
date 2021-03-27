@@ -26,7 +26,7 @@
 
 (setq url-http-attempt-keepalives nil)
 
-;; (setq debug-on-error t)
+;(setq debug-on-error t)
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -92,7 +92,7 @@
 ;; 'other-theme-name) to load your own theme.
 (if (boundp 'user-specific-color-theme)
   (load-theme user-specific-color-theme t)
-(load-theme 'zenburn t))
+  (load-theme 'zenburn t))
 
 ;; KEYBINDINGS
 ;;--------------------------------------------------
@@ -126,13 +126,13 @@
   (setq company-idle-delay 0.2)
   (setq company-minimum-prefix-length 2))
 
-(use-package distinguished-theme)
+;; (use-package distinguished-theme)
 
 (use-package clojure-mode
   :pin melpa-stable
 
   :init
-  (setq clojure-indent-style 'always-indent)
+  (setq clojure-indent-style 'always-align)
 
   :after flycheck-clj-kondo
 
@@ -225,29 +225,29 @@
   (define-key cider-mode-map
     (kbd "C-c C-j") 'cider-find-dwim)
 
-  (evil-define-key
-    'normal cider-popup-buffer-mode-map
-    (kbd "q") 'quit-window)
+;  (evil-define-key
+;    'normal cider-popup-buffer-mode-map
+;    (kbd "q") 'quit-window)
 
-  (evil-define-key
-    'normal cider-docview-mode-map
-    (kbd "q") 'quit-window)
+;  (evil-define-key
+;    'normal cider-docview-mode-map
+;    (kbd "q") 'quit-window)
 
-  (evil-define-key
-    'normal cider-stacktrace-mode-map
-    (kbd "q") 'quit-window)
+;  (evil-define-key
+;    'normal cider-stacktrace-mode-map
+;    (kbd "q") 'quit-window)
 
-  (evil-define-key
-    'normal cider-mode-map
-    (kbd ",e") '~/clojure/cider-eval-expression-at-point-in-repl)
+;  (evil-define-key
+;    'normal cider-mode-map
+;    (kbd ",e") '~/clojure/cider-eval-expression-at-point-in-repl)
 
-  (evil-define-key
-    'normal cider-mode-map
-    (kbd ",l") 'cider-load-file)
+;  (evil-define-key
+;    'normal cider-mode-map
+;    (kbd ",l") 'cider-load-file)
 
-  (evil-define-key
-    'normal cider-mode-map
-    (kbd ",d") 'cider-doc)
+;  (evil-define-key
+;    'normal cider-mode-map
+;    (kbd ",d") 'cider-doc)
 
   (add-hook 'cider-mode-hook (lambda ()
                                (company-mode)
@@ -263,64 +263,61 @@
   :catch (lambda (keyword err)
            (message (error-message-string err))))
 
-(use-package clj-refactor
-  :after clojure-mode
-  :config
-  (add-hook 'clojure-mode-hook (lambda ()
-                                 (clj-refactor-mode 1)
-                                 (yas-minor-mode 1)
-                                 ;; insert keybinding setup here
-                                 (cljr-add-keybindings-with-prefix "C-c C-m")
-                                 (dolist (mapping '(("async" . "clojure.core.async")
-                                                    ("gen"   . "clojure.spec.gen.alpha")
-                                                    ("json"  . "cheshire.core")
-                                                    ("log"   . "clojure.tools.logging")
-                                                    ("prop"  . "clojure.test.check.properties")
-                                                    ("s"     . "clojure.spec.alpha")
-                                                    ("stest" . "clojure.spec.test.alpha")
-                                                    ("t"     . "clojure.test")
-                                                    ("tc"    . "clojure.test.check.clojure-test")))
-                                   (add-to-list 'cljr-magic-require-namespaces mapping t))))
-  :catch (lambda (keyword err)
-           (message (error-message-string err))))
+;; (use-package clj-refactor
+;;   :after clojure-mode
+;;   :config
+;;   (add-hook 'clojure-mode-hook (lambda ()
+;;                                  (clj-refactor-mode 1)
+;;                                  (yas-minor-mode 1)
+;;                                  ;; insert keybinding setup here
+;;                                  (cljr-add-keybindings-with-prefix "C-c C-m")
+;;                                  (dolist (mapping '(("async" . "clojure.core.async")
+;;                                                     ("gen"   . "clojure.spec.gen.alpha")
+;;                                                     ("json"  . "cheshire.core")
+;;                                                     ("log"   . "clojure.tools.logging")
+;;                                                     ("prop"  . "clojure.test.check.properties")
+;;                                                     ("s"     . "clojure.spec.alpha")
+;;                                                     ("stest" . "clojure.spec.test.alpha")
+;;                                                     ("t"     . "clojure.test")
+;;                                                     ("tc"    . "clojure.test.check.clojure-test")))
+;;                                    (add-to-list 'cljr-magic-require-namespaces mapping t))))
+;;   :catch (lambda (keyword err)
+;;            (message (error-message-string err))))
 
-(use-package evil
-  :config
+;; (use-package evil
+;;   :config
 
-  ;; Enable evil mode but start Emacs in Emacs mode and allow change to evil w <Ctrl + z>
-  (evil-mode t)
-  (setq evil-default-state 'emacs)
+;;   ;; Enable evil mode but start Emacs in Emacs mode and allow change to evil w <Ctrl + z>
+;;   (evil-mode t)
+;;   (setq evil-default-state 'emacs)
 
-  (defun ~/evil/backward-char-crosslines ()
-    (interactive)
-    (evil-backward-char 1 t))
+;;   (defun ~/evil/backward-char-crosslines ()
+;;     (interactive)
+;;     (evil-backward-char 1 t))
 
-  (defun ~/evil/forward-char-crosslines ()
-    (interactive)
-    (evil-forward-char 1 t))
+;;   (defun ~/evil/forward-char-crosslines ()
+;;     (interactive)
+;;     (evil-forward-char 1 t))
 
-  (define-key evil-motion-state-map
-    (kbd "<left>") '~/evil/backward-char-crosslines)
-  (define-key evil-motion-state-map
-    (kbd "<right>") '~/evil/forward-char-crosslines)
-  (define-key evil-motion-state-map
-    (kbd "C-y") 'yank)
-  (define-key evil-insert-state-map
-    (kbd "C-k") 'kill-line)
-  (define-key evil-insert-state-map
-    (kbd "C-M-k") 'kill-word)
-  (define-key evil-insert-state-map
-    (kbd "C-y") 'yank))
+;;   (define-key evil-motion-state-map
+;;     (kbd "<left>") '~/evil/backward-char-crosslines)
+;;   (define-key evil-motion-state-map
+;;     (kbd "<right>") '~/evil/forward-char-crosslines)
+;;   (define-key evil-motion-state-map
+;;     (kbd "C-y") 'yank)
+;;   (define-key evil-insert-state-map
+;;     (kbd "C-k") 'kill-line)
+;;   (define-key evil-insert-state-map
+;;     (kbd "C-M-k") 'kill-word)
+;;   (define-key evil-insert-state-map
+;;     (kbd "C-y") 'yank))
 
-(use-package evil-paredit)
+;; (use-package evil-paredit)
 
-(use-package evil-mc
-  :config
-  (global-set-key (kbd "H--") 'evil-mc-mode)
-  (define-key evil-mc-key-map (kbd "C-g") 'evil-mc-undo-all-cursors)
-  (evil-define-key 'visual evil-mc-key-map
-    "A" #'evil-mc-make-cursor-in-visual-selection-end
-    "I" #'evil-mc-make-cursor-in-visual-selection-beg))
+;; (use-package evil-mc
+;;   :config
+;;   (global-set-key (kbd "H--") 'evil-mc-mode)
+;;   (define-key evil-mc-key-map (kbd "C-g") 'evil-mc-undo-all-cursors))
 
 (use-package ws-butler
   :init (ws-butler-global-mode 1))
@@ -376,6 +373,8 @@
 
 (use-package popup)
 
+(use-package typescript-mode)
+
 (use-package helm)
 
 (use-package helm-projectile
@@ -385,8 +384,12 @@
 
 (use-package helm-ag
   :after (helm projectile popup)
+  :init
+  (setq helm-ag-use-agignore t)
   :config
   (global-set-key (kbd "C-c a g") 'helm-projectile-ag))
+
+;(use-package helm-cider)
 
 (use-package smex
   :config
@@ -405,6 +408,13 @@
   :hook (flycheck-mode . flycheck-color-mode-line-mode))
 
 (use-package flycheck-clj-kondo)
+;; (use-package typescript)
+;; (use-package tide
+;;   :ensure t
+;;   :after (typescript-mode company flycheck)
+;;   :config (tide-setup)
+;;   :hook ((typescript-mode . tide-hl-identifier-mode)
+;;          (before-save . tide-format-before-save)))
 
 (use-package paredit
   :config
@@ -431,64 +441,60 @@
   (defun ~/paredit/forward-kill-and-insert ()
     (interactive)
     (paredit-kill)
-    (evil-insert-state))
+    ;; (evil-insert-state)
+    )
 
-  (defun ~/paredit/define-evil-keys ()
-    ;; Normal state
-    (define-key evil-normal-state-local-map
-      "W(" 'paredit-wrap-round)
-    (define-key evil-normal-state-local-map
-      "W[" 'paredit-wrap-square)
-    (define-key evil-normal-state-local-map
-      "W{" 'paredit-wrap-curly)
-    (define-key evil-normal-state-local-map
-      "W\"" '~/paredit/wrap-quote)
-    (define-key evil-normal-state-local-map
-      "(" 'paredit-backward-slurp-sexp)
-    (define-key evil-normal-state-local-map
-      ")" 'paredit-backward-barf-sexp)
-    (define-key evil-normal-state-local-map
-      "{" 'paredit-forward-barf-sexp)
-    (define-key evil-normal-state-local-map
-      "}" 'paredit-forward-slurp-sexp)
-    (define-key evil-normal-state-local-map
-      (kbd "C-S-r") 'paredit-raise-sexp)
-    (define-key evil-normal-state-local-map
-      "S" 'paredit-splice-sexp)
-    (define-key evil-normal-state-local-map
-      "s" 'paredit-split-sexp)
-    (define-key evil-normal-state-local-map
-      "T" '~/paredit/backward-transpose-sexps)
-    (define-key evil-normal-state-local-map
-      "t" '~/paredit/forward-transpose-sexps)
-    (define-key evil-normal-state-local-map
-      "Y" 'paredit-copy-as-kill)
-    (define-key evil-normal-state-local-map
-      "C" '~/paredit/forward-kill-and-insert)
-    (define-key evil-normal-state-local-map
-      "D" 'paredit-kill)
-    ;; Insert state
-    (define-key evil-insert-state-local-map
-      (kbd "C-(") 'paredit-backward-slurp-sexp)
-    (define-key evil-insert-state-local-map
-      (kbd "C-)") 'paredit-backward-barf-sexp)
-    ;; ;; I don't like the inconsistency here but C-{ and C-} don't seem to
-    ;; ;; work.
-    ;; (define-key evil-insert-state-local-map
-    ;;   (kbd "C-[") 'paredit-forward-barf-sexp)
-    ;; (define-key evil-insert-state-local-map
-    ;;   (kbd "C-]") 'paredit-forward-slurp-sexp)
+  ;; (defun ~/paredit/define-evil-keys ()
+  ;;   ;; Normal state
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "W(" 'paredit-wrap-round)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "W[" 'paredit-wrap-square)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "W{" 'paredit-wrap-curly)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "W\"" '~/paredit/wrap-quote)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "(" 'paredit-backward-slurp-sexp)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     ")" 'paredit-backward-barf-sexp)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "{" 'paredit-forward-barf-sexp)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "}" 'paredit-forward-slurp-sexp)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     (kbd "C-S-r") 'paredit-raise-sexp)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "S" 'paredit-splice-sexp)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "s" 'paredit-split-sexp)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "T" '~/paredit/backward-transpose-sexps)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "t" '~/paredit/forward-transpose-sexps)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "Y" 'paredit-copy-as-kill)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "C" '~/paredit/forward-kill-and-insert)
+  ;;   (define-key evil-normal-state-local-map
+  ;;     "D" 'paredit-kill)
+  ;;   ;; Insert state
+  ;;   (define-key evil-insert-state-local-map
+  ;;     (kbd "C-(") 'paredit-backward-slurp-sexp)
+  ;;   (define-key evil-insert-state-local-map
+  ;;     (kbd "C-)") 'paredit-backward-barf-sexp)
 
-    (define-key evil-insert-state-local-map
-      (kbd "C-k") 'paredit-kill)
-    (define-key evil-insert-state-local-map
-      (kbd "C-M-k") 'kill-sexp)
-    (define-key evil-insert-state-local-map
-      (kbd "C-y") 'yank))
+  ;;   (define-key evil-insert-state-local-map
+  ;;     (kbd "C-k") 'paredit-kill)
+  ;;   (define-key evil-insert-state-local-map
+  ;;     (kbd "C-M-k") 'kill-sexp)
+  ;;   (define-key evil-insert-state-local-map
+  ;;     (kbd "C-y") 'yank))
 
   (defun ~/paredit-mode ()
     (paredit-mode t)
-    (~/paredit/define-evil-keys))
+    ;; (~/paredit/define-evil-keys)
+    )
 
   (defun paredit-wrap-round-from-behind ()
     (interactive)
@@ -626,6 +632,38 @@
   (modify-syntax-entry ?\} "){")
   (modify-syntax-entry ?\[ "(]")
   (modify-syntax-entry ?\] ")["))
+
+
+;;
+;; change orientation of split (toggle)
+;;
+(defun toggle-frame-split ()
+  "If the frame is split vertically, split it horizontally or vice versa.
+Assumes that the frame is only split into two."
+  (interactive)
+  (unless (= (length (window-list)) 2) (error "Can only toggle a frame split in two"))
+  (let ((current (current-buffer))
+        (split-vertically-p (window-combined-p)))
+    (delete-window) ; closes current window
+    (if split-vertically-p
+        (split-window-horizontally)
+      (split-window-vertically)) ; gives us a split with the other window twice
+    (switch-to-buffer current)))
+
+;;
+;; swap split buffers and switch focus to opposite (which is now in current pane)
+;;
+(defun reverse-arrangement ()
+  (interactive)
+  (unless (= (length (window-list)) 2) (error "Can only reverse a frame split in two"))
+  (let ((current (current-buffer))
+        (opposite (window-buffer (next-window))))
+    (set-window-buffer (selected-window) opposite)
+    (set-window-buffer (next-window) current)
+    (switch-to-buffer opposite)))
+
+;; (global-set-key (kbd "s-r") 'toggle-frame-split)
+;; (global-set-key (kbd "s-R") 'reverse-arrangement)
 
 
 ;; Local Variables:
