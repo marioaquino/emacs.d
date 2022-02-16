@@ -5,18 +5,15 @@
  ;; If there is more than one, they won't work right.
  '(ansi-color-names-vector
    ["#3f3f3f" "#cc9393" "#7f9f7f" "#f0dfaf" "#8cd0d3" "#dc8cc3" "#93e0e3" "#dcdccc"])
- '(custom-enabled-themes (quote (distinguished)))
+ '(custom-enabled-themes '(distinguished))
  '(custom-safe-themes
-   (quote
-    ("3ee898efcd3fa5b63c4f15e225f3616497010f2347a514490be8b563edbd39d9" default)))
+   '("3ee898efcd3fa5b63c4f15e225f3616497010f2347a514490be8b563edbd39d9" default))
  '(fci-rule-color "#383838")
  '(package-selected-packages
-   (quote
-    (paredit flycheck-clj-kondo flycheck-color-mode-line flycheck smex helm-ag helm-projectile helm popup projectile cider-eval-sexp-fu neotree idle-highlight-mode highlight-symbol highlight yaml-mode markdown-mode json-mode undo-tree aggressive-indent magit ws-butler cider align-cljlet clojure-mode company multiple-cursors use-package-ensure-system-package exec-path-from-shell use-package)))
+   '(lua-mode paredit flycheck-clj-kondo flycheck-color-mode-line flycheck smex helm-ag helm-projectile helm popup projectile cider-eval-sexp-fu neotree idle-highlight-mode highlight-symbol highlight yaml-mode markdown-mode json-mode undo-tree aggressive-indent magit ws-butler cider align-cljlet clojure-mode company multiple-cursors use-package-ensure-system-package exec-path-from-shell use-package))
  '(vc-annotate-background "#2b2b2b")
  '(vc-annotate-color-map
-   (quote
-    ((20 . "#bc8383")
+   '((20 . "#bc8383")
      (40 . "#cc9393")
      (60 . "#dfaf8f")
      (80 . "#d0bf8f")
@@ -33,7 +30,7 @@
      (300 . "#7cb8bb")
      (320 . "#8cd0d3")
      (340 . "#94bff3")
-     (360 . "#dc8cc3"))))
+     (360 . "#dc8cc3")))
  '(vc-annotate-very-old-color "#dc8cc3"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
