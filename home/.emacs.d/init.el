@@ -20,8 +20,15 @@
 
 (package-initialize)
 
-(add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
-(add-to-list 'package-pinned-packages '(clojure-mode . "melpa-stable") t)
+(setq package-selected-packages '(clojure-mode lsp-mode cider lsp-treemacs flycheck company))
+
+(when (cl-find-if-not #'package-installed-p package-selected-packages)
+  (package-refresh-contents)
+  (mapc #'package-install package-selected-packages))
+
+
+;(add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
+;(add-to-list 'package-pinned-packages '(clojure-mode . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(inf-clojure . "melpa-stable") t)
 
 (setq url-http-attempt-keepalives nil)
@@ -76,7 +83,8 @@
                   :height 160)
 
 ;; show line numbers
-(global-linum-mode t)
+;;(global-linum-mode 1)
+(global-display-line-numbers-mode)
 (setq linum-format "%4d \u2502 ")
 
 (show-paren-mode 1)
@@ -126,7 +134,8 @@
   (setq company-idle-delay 0.2)
   (setq company-minimum-prefix-length 2))
 
-;; (use-package distinguished-theme)
+;;(use-package distinguished-theme)
+;;(use-package dracula-theme)
 
 (use-package clojure-mode
   :pin melpa-stable
@@ -193,6 +202,21 @@
     '~/clojure/toggle-keyword-string)
 
   (global-set-key (kbd "C-s-x") '~/clojure/scratch))
+
+(add-hook 'clojure-mode-hook 'lsp)
+(add-hook 'clojurescript-mode-hook 'lsp)
+(add-hook 'clojurec-mode-hook 'lsp)
+
+(setq gc-cons-threshold (* 100 1024 1024)
+      read-process-output-max (* 1024 1024)
+      treemacs-space-between-root-nodes nil
+      company-minimum-prefix-length 1
+      lsp-lens-enable t
+      lsp-signature-auto-activate nil
+      ; lsp-enable-indentation nil ; uncomment to use cider indentation instead of lsp
+      ; lsp-enable-completion-at-point nil ; uncomment to use cider completion instead of lsp
+      )
+
 
 (use-package align-cljlet)
 
@@ -263,6 +287,31 @@
   :catch (lambda (keyword err)
            (message (error-message-string err))))
 
+(use-package lsp-mode
+  :ensure t
+  :hook ((clojure-mode . lsp)
+         (clojurec-mode . lsp)
+         (clojurescript-mode . lsp))
+  :config
+  ;; add paths to your local installation of project mgmt tools, like lein
+  (setenv "PATH" (concat
+                   "/usr/local/bin" path-separator
+                   (getenv "PATH")))
+  (dolist (m '(clojure-mode
+               clojurec-mode
+               clojurescript-mode
+               clojurex-mode))
+     (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
+  ;; Optional: In case `clojure-lsp` is not in your $PATH
+  ;(setq lsp-clojure-server-command '("/path/to/clojure-lsp"))
+  )
+
+(use-package lsp-ui
+  :ensure t
+  :commands lsp-ui-mode
+  :init
+  (setq lsp-ui-doc-enable nil))
+
 ;; (use-package clj-refactor
 ;;   :after clojure-mode
 ;;   :config
@@ -319,6 +368,26 @@
 ;;   (global-set-key (kbd "H--") 'evil-mc-mode)
 ;;   (define-key evil-mc-key-map (kbd "C-g") 'evil-mc-undo-all-cursors))
 
+(use-package org
+  :pin gnu
+  :mode (("\\.org$" . org-mode))
+  ;;:ensure org-plus-contrib
+  :config
+  (progn
+    ;; config stuff
+    ))
+
+(use-package plantuml-mode
+  :after org
+  :init
+  (setq plantuml-default-exec-mode 'jar)
+  (setq plantuml-jar-path "/usr/local/bin/plantuml-1.2022.6.jar")
+  (setq org-plantuml-jar-path "/usr/local/bin/plantuml-1.2022.6.jar")
+  (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+  (org-babel-do-load-languages 'org-babel-load-languages '((plantuml . t)
+                                                           (emacs-lisp . t)
+                                                           (http . t))))
+
 (use-package ws-butler
   :init (ws-butler-global-mode 1))
 
@@ -335,7 +404,10 @@
 
 (use-package json-mode)
 
-(use-package markdown-mode)
+(use-package markdown-mode
+  :ensure t
+  :mode ("README\\.md\\'" . gfm-mode)
+  :init (setq markdown-command "multimarkdown"))
 
 (use-package yaml-mode)
 
@@ -622,6 +694,23 @@
 
 ;; Allow Emacs to use more system memory to avoid more frequent GC runs
 (setq gc-cons-threshold 20000000)
+
+(with-eval-after-load 'dired
+  (require 'dired-x)
+  ;; Set dired-x global variables here.  For example:
+  ;; (setq dired-guess-shell-gnutar "gtar")
+  ;; (setq dired-x-hands-off-my-keys nil)
+
+  (setq dired-omit-files
+        (concat dired-omit-files "^\\..+\\.\\~undo\\-tree\\~$"))
+  )
+(add-hook 'dired-mode-hook
+          (lambda ()
+            ;; Set dired-x buffer-local variables here.  For example:
+            (dired-omit-mode 1)
+            ))
+
+
 
 ;; slime and paredit
 (defun fix-paredit-repl ()
