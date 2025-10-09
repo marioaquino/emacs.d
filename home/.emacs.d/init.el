@@ -8,6 +8,22 @@
 (setq tmp-dir (file-name-as-directory (concat dotfiles-dir "tmp")))
 (make-directory tmp-dir t)
 
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        (or (bound-and-true-p straight-base-dir)
+            user-emacs-directory)))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
 (require 'package)
 (setq package-enable-at-startup nil)
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
@@ -88,6 +104,7 @@
 (setq linum-format "%4d \u2502 ")
 
 (show-paren-mode 1)
+(electric-pair-mode 1)
 
 ;; tabs are 2 spaces
 (setq-default tab-width 2)
@@ -111,13 +128,23 @@
 
 (global-set-key [f5] 'call-last-kbd-macro)
 
+(unless (package-installed-p 'quelpa)
+  (with-temp-buffer
+    (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
+    (eval-buffer)
+    (quelpa-self-upgrade)))
+
+(quelpa
+ '(quelpa-use-package
+   :fetcher git
+   :url "https://github.com/quelpa/quelpa-use-package.git"))
+(require 'quelpa-use-package)
+
 ;;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 (use-package exec-path-from-shell
   :config
   (exec-path-from-shell-initialize))
-
-(use-package use-package-ensure-system-package)
 
 (use-package multiple-cursors
   :init
@@ -136,6 +163,11 @@
 
 ;;(use-package distinguished-theme)
 ;;(use-package dracula-theme)
+
+(use-package editorconfig
+  :ensure t
+  :config
+  (editorconfig-mode 1))
 
 (use-package clojure-mode
   :pin melpa-stable
@@ -198,8 +230,8 @@
               (put-clojure-indent 'future-facts 'defun)))
 
   (define-key clojure-mode-map
-    (kbd "s-:")
-    '~/clojure/toggle-keyword-string)
+              (kbd "s-:")
+              '~/clojure/toggle-keyword-string)
 
   (global-set-key (kbd "C-s-x") '~/clojure/scratch))
 
@@ -237,6 +269,7 @@
   (setq cider-repl-popup-stacktraces t)
   (setq cider-auto-select-error-buffer t)
   (setq cider-repl-wrap-history t)
+  (setq cider-test-default-exclude-selectors '("integration" "disabled"))
 
   ;; specify the print length to be 100 to stop infinite sequences
   ;; killing things.
@@ -287,23 +320,143 @@
   :catch (lambda (keyword err)
            (message (error-message-string err))))
 
+(use-package direnv
+  :config
+  (direnv-mode))
+
+(use-package exec-path-from-shell
+  :init
+  (exec-path-from-shell-initialize))
+
+;; (use-package elpy
+;;   :ensure t
+;;   :defer t
+;;   :init
+;;   (advice-add 'python-mode :before 'elpy-enable)
+;;   :config
+;;   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+;;   :hook
+;;   (python-mode . electric-pair-mode)
+;;   (elpy-mode . flycheck-mode))
+
+(use-package python
+  :hook (inferior-python-mode . fix-python-password-entry)
+  :custom
+  (python-shell-interpreter "jupyter-console")
+  (python-shell-interpreter-args "--simple-prompt")
+  (python-shell-prompt-detect-failure-warning nil)
+  (python-shell-completion-native-disabled-interpreters
+   '("pypy" "ipython" "jupyter" "jupyter-console"))
+  (python-indent-offset 4)
+  :config
+  (require 'py-isort)
+  (add-hook 'before-save-hook 'py-isort-before-save)
+  (defun fix-python-password-entry ()
+    (push
+     'comint-watch-for-password-prompt comint-output-filter-functions))
+
+  (defun my-setup-python (orig-fun &rest args)
+    "Use corresponding kernel for current Pyenv version"
+    (let* ((curr-python (car (split-string (shim-version) ":")))
+           (python-shell-buffer-name (concat "Python-" curr-python))
+           (python-shell-interpreter-args (if (bound-and-true-p djangonaut-mode)
+                                              "shell_plus -- --simple-prompt"
+                                            (concat "--simple-prompt --kernel=pyenv_" curr-python)))
+           (python-shell-interpreter (if (bound-and-true-p djangonaut-mode)
+                                         "django-admin"
+                                       python-shell-interpreter)))
+      (apply orig-fun args)))
+
+  (advice-add 'python-shell-get-process-name :around #'my-setup-python)
+  (advice-add 'python-shell-calculate-command :around #'my-setup-python))
+
+;; Highlight and reformat docstrings in python
+(use-package python-docstring
+  :hook (python-mode . python-docstring-mode))
+
+(use-package poetry)
+
+(use-package python-black
+  :demand t
+  :after python
+  :hook (python-mode . python-black-on-save-mode-enable-dwim))
+
+;; (use-package pet
+;;   :config
+;;   (add-hook 'python-base-mode-hook 'pet-mode -10))
+
+(use-package python-pytest)
+(use-package python-coverage
+  :after python-pytest)
+
+(use-package shim
+  :straight (:host github :repo "twlz0ne/shim.el")
+  :demand t
+  :hook
+  ((python-mode)
+   . shim-mode)
+  :config
+  (shim-init-python)
+  (shim-register-mode 'python 'python-ts-mode))
+
+(use-package lsp-bridge
+  :straight '(lsp-bridge :type git :host github :repo "manateelazycat/lsp-bridge"
+                         :files (:defaults "*.el" "*.py" "acm" "core" "langserver" "multiserver" "resources")
+                         :build (:not compile))
+  :init
+  (global-lsp-bridge-mode))
+
+(use-package lsp-pyright
+  :ensure t
+  :custom (lsp-pyright-langserver-command "basedpyright") ;; or pyright
+  :hook (python-mode . (lambda ()
+                         (require 'lsp-pyright)
+                         (lsp))))  ; or lsp-deferred
+
+(use-package jupyter
+  :ensure t
+  :bind (("C-c J R" . jupyter-run-repl)) ; Custom keybinding for running a REPL
+  :config
+  (setq jupyter-default-kernel "python3")
+  (add-to-list 'exec-path "/usr/local/bin")
+  (with-eval-after-load 'org
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . t)
+       (python . t)
+       (jupyter . t)))) ; Add jupyter to org-babel-load-languages
+  ;; Other configurations as needed
+  )
+
+(use-package yaml-mode
+  :ensure t
+  :mode ("\\.ya?ml\\'" . yaml-mode)
+  :config
+  (add-hook 'yaml-mode-hook 'eglot-ensure))
+
 (use-package lsp-mode
   :ensure t
-  :hook ((clojure-mode . lsp)
-         (clojurec-mode . lsp)
-         (clojurescript-mode . lsp))
+  :custom
+  (lsp-pylsp-plugins-jedi-use-pyenv-environment t)
+  :hook ((clojure-mode
+          clojurec-mode
+          clojurescript-mode
+          python-mode
+          yaml-mode)
+         . lsp)
   :config
+  (setq lsp-enable-file-watchers nil)
   ;; add paths to your local installation of project mgmt tools, like lein
   (setenv "PATH" (concat
-                   "/usr/local/bin" path-separator
-                   (getenv "PATH")))
+                  "/usr/local/bin" path-separator
+                  (getenv "PATH")))
   (dolist (m '(clojure-mode
                clojurec-mode
                clojurescript-mode
                clojurex-mode))
-     (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
+    (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
   ;; Optional: In case `clojure-lsp` is not in your $PATH
-  ;(setq lsp-clojure-server-command '("/path/to/clojure-lsp"))
+                                        ;(setq lsp-clojure-server-command '("/path/to/clojure-lsp"))
   )
 
 (use-package lsp-ui
@@ -312,77 +465,46 @@
   :init
   (setq lsp-ui-doc-enable nil))
 
-;; (use-package clj-refactor
-;;   :after clojure-mode
-;;   :config
-;;   (add-hook 'clojure-mode-hook (lambda ()
-;;                                  (clj-refactor-mode 1)
-;;                                  (yas-minor-mode 1)
-;;                                  ;; insert keybinding setup here
-;;                                  (cljr-add-keybindings-with-prefix "C-c C-m")
-;;                                  (dolist (mapping '(("async" . "clojure.core.async")
-;;                                                     ("gen"   . "clojure.spec.gen.alpha")
-;;                                                     ("json"  . "cheshire.core")
-;;                                                     ("log"   . "clojure.tools.logging")
-;;                                                     ("prop"  . "clojure.test.check.properties")
-;;                                                     ("s"     . "clojure.spec.alpha")
-;;                                                     ("stest" . "clojure.spec.test.alpha")
-;;                                                     ("t"     . "clojure.test")
-;;                                                     ("tc"    . "clojure.test.check.clojure-test")))
-;;                                    (add-to-list 'cljr-magic-require-namespaces mapping t))))
-;;   :catch (lambda (keyword err)
-;;            (message (error-message-string err))))
-
-;; (use-package evil
-;;   :config
-
-;;   ;; Enable evil mode but start Emacs in Emacs mode and allow change to evil w <Ctrl + z>
-;;   (evil-mode t)
-;;   (setq evil-default-state 'emacs)
-
-;;   (defun ~/evil/backward-char-crosslines ()
-;;     (interactive)
-;;     (evil-backward-char 1 t))
-
-;;   (defun ~/evil/forward-char-crosslines ()
-;;     (interactive)
-;;     (evil-forward-char 1 t))
-
-;;   (define-key evil-motion-state-map
-;;     (kbd "<left>") '~/evil/backward-char-crosslines)
-;;   (define-key evil-motion-state-map
-;;     (kbd "<right>") '~/evil/forward-char-crosslines)
-;;   (define-key evil-motion-state-map
-;;     (kbd "C-y") 'yank)
-;;   (define-key evil-insert-state-map
-;;     (kbd "C-k") 'kill-line)
-;;   (define-key evil-insert-state-map
-;;     (kbd "C-M-k") 'kill-word)
-;;   (define-key evil-insert-state-map
-;;     (kbd "C-y") 'yank))
-
-;; (use-package evil-paredit)
-
-;; (use-package evil-mc
-;;   :config
-;;   (global-set-key (kbd "H--") 'evil-mc-mode)
-;;   (define-key evil-mc-key-map (kbd "C-g") 'evil-mc-undo-all-cursors))
-
 (use-package org
   :pin gnu
   :mode (("\\.org$" . org-mode))
   ;;:ensure org-plus-contrib
   :config
+  (setq org-export-with-sub-superscripts nil)
   (progn
     ;; config stuff
     ))
 
+(use-package org-modern
+  :after org
+  :init
+  (setq
+   ;; Edit settings
+   org-auto-align-tags nil
+   org-tags-column 0
+   org-fold-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+   ;; Org styling, hide markup etc.
+   org-hide-emphasis-markers t
+   org-pretty-entities t
+   org-agenda-tags-column 0)
+
+  (setq org-ellipsis "…")
+  ;;(set-face-attribute 'org-ellipsis nil :inherit 'default :box nil)
+  ;;(with-eval-after-load 'org (global-org-modern-mode))
+  )
+
+(use-package olivetti
+  :init (add-hook 'org-mode-hook 'olivetti-mode)
+  (setq-default olivetti-body-width 144))
+
 (use-package plantuml-mode
   :after org
   :init
-  (setq plantuml-default-exec-mode 'jar)
-  (setq plantuml-jar-path "/usr/local/bin/plantuml-1.2022.6.jar")
-  (setq org-plantuml-jar-path "/usr/local/bin/plantuml-1.2022.6.jar")
+  ;;(setq plantuml-default-exec-mode 'jar)
+  ;;(setq plantuml-jar-path "/Users/marioaqu/Downloads/plantuml-lgpl-1.2024.4.jar")
+  (setq org-plantuml-jar-path "/Users/marioaqu/Downloads/plantuml-asl-1.2024.4.jar")
   (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
   (org-babel-do-load-languages 'org-babel-load-languages '((plantuml . t)
                                                            (emacs-lisp . t)
@@ -402,14 +524,17 @@
   :config
   (global-undo-tree-mode))
 
-(use-package json-mode)
+(use-package jsonian
+  :load-path "~/.emacs.d/from_src/jsonian"
+  :ensure nil
+  :after so-long
+  :custom
+  (jsonian-no-so-long-mode))
 
 (use-package markdown-mode
   :ensure t
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown"))
-
-(use-package yaml-mode)
 
 (use-package highlight)
 
@@ -434,14 +559,20 @@
   :after cider)
 
 (use-package projectile
+  :ensure t
   :init
   (setq projectile-project-root-files
         (quote
-         ("rebar.config" "project.clj" "pom.xml" "build.sbt" "build.gradle" "Gemfile" "requirements.txt" "package.json" "gulpfile.js" "Gruntfile.js" "bower.json" "composer.json" "Cargo.toml" "mix.exs" ".git" ".projectile_root")))
+         ("rebar.config" "project.clj" "pom.xml" "build.sbt" "build.gradle" "Gemfile" "requirements.txt" "package.json" "gulpfile.js" "Gruntfile.js" "bower.json" "composer.json" "Cargo.toml" "mix.exs" ".git" ".projectile_root" "pyproject.toml")))
   (setq projectile-project-root-files-bottom-up (quote (".projectile" ".hg" ".fslckout" ".bzr" "_darcs")))
   (setq projectile-file-exists-remote-cache-expire (* 10 60))
+  (setq projectile-globally-ignored-file-suffixes '(".bak" ".tmp"))
+  (setq projectile-globally-ignored-directories '("-/tmp"))
   :config
-  (projectile-mode))
+  (projectile-mode)
+  :bind (:map projectile-mode-map
+              ("C-c p" . projectile-command-map) ; Binds C-c p to the Projectile command map
+              ("s-p" . projectile-command-map))) ; Binds s-p (Super-p) to the Projectile command map
 
 (use-package popup)
 
@@ -618,6 +749,54 @@
                                   (paredit-mode +1)
                                   (fix-paredit-repl)))
 
+(use-package copilot
+  :straight (:host github :repo "chep/copilot-chat.el" :files ("*.el"))
+  ;; :quelpa (copilot :fetcher github
+  ;;                  :repo "copilot-emacs/copilot.el"
+  ;;                  :branch "main"
+  ;;                  :files ("*.el"))
+  :hook (prog-mode . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-M-o" . 'copilot-accept-completion-by-word)
+              ("C-M-l" . 'copilot-accept-completion-by-line)
+              ("C-M-p" . 'copilot-accept-completion-by-paragraph)
+              ("C-n" . 'copilot-next-completion)
+              ("C-p" . 'copilot-previous-completion))
+
+  :config
+  (add-to-list 'copilot-indentation-alist '(prog-mode 2))
+  (add-to-list 'copilot-indentation-alist '(org-mode 2))
+  (add-to-list 'copilot-indentation-alist '(text-mode 2))
+  (add-to-list 'copilot-indentation-alist '(closure-mode 2))
+  (add-to-list 'copilot-indentation-alist '(clojure-mode 2))
+  (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2)))
+
+(use-package copilot-chat
+  ;; :straight (:host github :repo "chep/copilot-chat.el" :files ("*.el"))
+  :after (request org markdown-mode))
+
+(use-package gptel
+  :ensure t
+  :config
+  (setq gptel-model 'claude-4.0-sonnet
+        gptel-backend (gptel-make-gh-copilot "Copilot")))
+
+(use-package mcp
+  :ensure t
+  :custom (mcp-hub-servers
+           `(
+             ;; ("clojure-mcp" . (:command "/bin/bash" :args ("-c" "clojure -X:mcp :port 7888")))
+             ;; ("clj-kondo" . (:command "npx" :args ("clj-kondo-mcp")))
+             ("filesystem" . (:command "/Users/marioaqu/go/bin/mcp-filesystem-server" :args ("/Users/marioaqu/projects/")))
+             ("memory" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-memory")))
+             ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
+             ))
+  :config (require 'mcp-hub)
+  ;; :hook (after-init . mcp-hub-start-all-server)
+  )
+
 ;;
 (setq erc-hide-list '("JOIN" "PART" "QUIT"))
 
@@ -671,12 +850,8 @@
 (load custom-file 'noerror)
 
 ;; Scrolling!!!!
-(global-set-key [mouse-4] '(lambda ()
-                            (interactive)
-                            (scroll-down 1)))
-(global-set-key [mouse-5] '(lambda ()
-                            (interactive)
-                            (scroll-up 1)))
+(global-set-key (kbd "<wheel-down>") 'scroll-up-line)
+(global-set-key (kbd "<wheel-up>") 'scroll-down-line)
 
 ;; Friendly scrolling in the terminal
 (xterm-mouse-mode)
