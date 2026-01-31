@@ -24,51 +24,22 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-(require 'package)
-(setq package-enable-at-startup nil)
-(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-                         ;;("melpa" . "http://melpa.milkbox.net/packages/")
-                         ("melpa" . "https://melpa.org/packages/")
-                         ;;("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")
-                         ("melpa-stable" . "https://stable.melpa.org/packages/")
-                         ;;("marmalade" . "https://marmalade-repo.org/packages/")
-                         ))
+;; use-package is installed and managed by straight.el
+(straight-use-package 'use-package)
 
-(package-initialize)
-
-(setq package-selected-packages '(clojure-mode lsp-mode cider lsp-treemacs flycheck company))
-
-(when (cl-find-if-not #'package-installed-p package-selected-packages)
-  (package-refresh-contents)
-  (mapc #'package-install package-selected-packages))
-
-
-;(add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
-;(add-to-list 'package-pinned-packages '(clojure-mode . "melpa-stable") t)
-(add-to-list 'package-pinned-packages '(inf-clojure . "melpa-stable") t)
+(eval-when-compile
+  (require 'use-package))
 
 (setq url-http-attempt-keepalives nil)
 
 ;(setq debug-on-error t)
 
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-
-(eval-when-compile
-  (require 'use-package))
-
-(require 'use-package-ensure)
-(setq use-package-always-ensure t)
-
 (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
-
-(when (not package-archive-contents)
-  (package-refresh-contents))
 
 (when (memq window-system '(mac ns))
   (x-focus-frame nil)
-  (exec-path-from-shell-initialize))
+  ;; (exec-path-from-shell-initialize)
+  )
 
 (defun load-system-specific-configs (postfix)
   "Load system specific/user specific files if around."
@@ -128,25 +99,15 @@
 
 (global-set-key [f5] 'call-last-kbd-macro)
 
-(unless (package-installed-p 'quelpa)
-  (with-temp-buffer
-    (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
-    (eval-buffer)
-    (quelpa-self-upgrade)))
-
-(quelpa
- '(quelpa-use-package
-   :fetcher git
-   :url "https://github.com/quelpa/quelpa-use-package.git"))
-(require 'quelpa-use-package)
-
 ;;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 (use-package exec-path-from-shell
+  :straight (:host github :repo "purcell/exec-path-from-shell" :files ("*.el"))
   :config
   (exec-path-from-shell-initialize))
 
 (use-package multiple-cursors
+  :straight (:host github :repo "magnars/multiple-cursors.el" :files ("*.el"))
   :init
   (global-set-key (kbd "H-@") 'mc/edit-lines)
   (global-set-key (kbd "H->") 'mc/mark-next-like-this)
@@ -154,6 +115,7 @@
   (global-set-key (kbd "s-@") 'mc/mark-all-like-this-dwim))
 
 (use-package company
+  :straight (:host github :repo "company-mode/company-mode" :files ("*.el"))
   :init
   (global-company-mode)
   :config
@@ -161,16 +123,15 @@
   (setq company-idle-delay 0.2)
   (setq company-minimum-prefix-length 2))
 
-;;(use-package distinguished-theme)
-;;(use-package dracula-theme)
-
 (use-package editorconfig
+  :straight (:host github :repo "editorconfig/editorconfig-emacs" :files ("*.el"))
   :ensure t
   :config
   (editorconfig-mode 1))
 
 (use-package clojure-mode
-  :pin melpa-stable
+  :straight (:host github :repo "clojure-emacs/clojure-mode" :files ("*.el"))
+  ;; :pin melpa-stable
 
   :init
   (setq clojure-indent-style 'always-align)
@@ -250,10 +211,11 @@
       )
 
 
-(use-package align-cljlet)
+(use-package align-cljlet
+  :straight (:host github :repo "gstamp/align-cljlet" :files ("*.el")))
 
 (use-package cider
-  :pin melpa-stable
+  :straight (:host github :repo "clojure-emacs/cider" :files ("*.el"))
   :init
   (setq cider-repl-history-size 10000)
   (setq cider-repl-history-file "~/.cider/history")
@@ -282,30 +244,6 @@
   (define-key cider-mode-map
     (kbd "C-c C-j") 'cider-find-dwim)
 
-;  (evil-define-key
-;    'normal cider-popup-buffer-mode-map
-;    (kbd "q") 'quit-window)
-
-;  (evil-define-key
-;    'normal cider-docview-mode-map
-;    (kbd "q") 'quit-window)
-
-;  (evil-define-key
-;    'normal cider-stacktrace-mode-map
-;    (kbd "q") 'quit-window)
-
-;  (evil-define-key
-;    'normal cider-mode-map
-;    (kbd ",e") '~/clojure/cider-eval-expression-at-point-in-repl)
-
-;  (evil-define-key
-;    'normal cider-mode-map
-;    (kbd ",l") 'cider-load-file)
-
-;  (evil-define-key
-;    'normal cider-mode-map
-;    (kbd ",d") 'cider-doc)
-
   (add-hook 'cider-mode-hook (lambda ()
                                (company-mode)
                                (eldoc-mode)
@@ -321,25 +259,12 @@
            (message (error-message-string err))))
 
 (use-package direnv
+  :straight (:host github :repo "wbolster/emacs-direnv" :files ("*.el"))
   :config
   (direnv-mode))
 
-(use-package exec-path-from-shell
-  :init
-  (exec-path-from-shell-initialize))
-
-;; (use-package elpy
-;;   :ensure t
-;;   :defer t
-;;   :init
-;;   (advice-add 'python-mode :before 'elpy-enable)
-;;   :config
-;;   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-;;   :hook
-;;   (python-mode . electric-pair-mode)
-;;   (elpy-mode . flycheck-mode))
-
 (use-package python
+  :straight (:host gitlab :repo "python-mode-devs/python-mode")
   :hook (inferior-python-mode . fix-python-password-entry)
   :custom
   (python-shell-interpreter "jupyter-console")
@@ -372,21 +297,26 @@
 
 ;; Highlight and reformat docstrings in python
 (use-package python-docstring
+  :straight (:host github :repo "glyph/python-docstring-mode" :files ("*.el"))
   :hook (python-mode . python-docstring-mode))
 
-(use-package poetry)
+(use-package poetry
+  :straight (:host github :repo "cybniv/poetry.el" :files ("*.el")))
+
+(use-package py-isort
+  :straight (:host github :repo "paetzke/py-isort.el" :files ("*.el")))
 
 (use-package python-black
+  :straight (:host github :repo "wbolster/emacs-python-black" :files ("*.el"))
   :demand t
   :after python
   :hook (python-mode . python-black-on-save-mode-enable-dwim))
 
-;; (use-package pet
-;;   :config
-;;   (add-hook 'python-base-mode-hook 'pet-mode -10))
+(use-package python-pytest
+  :straight (:host github :repo "wbolster/emacs-python-pytest" :files ("*.el")))
 
-(use-package python-pytest)
 (use-package python-coverage
+  :straight (:host github :repo "wbolster/emacs-python-coverage" :files ("*.el"))
   :after python-pytest)
 
 (use-package shim
@@ -399,6 +329,10 @@
   (shim-init-python)
   (shim-register-mode 'python 'python-ts-mode))
 
+(use-package yasnippet
+  :straight (:host github :repo "joaotavora/yasnippet" :files ("*.el"))
+  :config (yas-global-mode 1))
+
 (use-package lsp-bridge
   :straight '(lsp-bridge :type git :host github :repo "manateelazycat/lsp-bridge"
                          :files (:defaults "*.el" "*.py" "acm" "core" "langserver" "multiserver" "resources")
@@ -407,13 +341,26 @@
   (global-lsp-bridge-mode))
 
 (use-package lsp-pyright
+  :straight (:host github :repo "emacs-lsp/lsp-pyright" :files ("*.el"))
   :ensure t
   :custom (lsp-pyright-langserver-command "basedpyright") ;; or pyright
   :hook (python-mode . (lambda ()
                          (require 'lsp-pyright)
                          (lsp))))  ; or lsp-deferred
 
+(use-package org
+  :straight (:host github :repo "emacsmirror/org")
+  ;; :pin gnu
+  :mode (("\\.org$" . org-mode))
+  ;;:ensure org-plus-contrib
+  :config
+  (setq org-export-with-sub-superscripts nil)
+  (progn
+    ;; config stuff
+    ))
+
 (use-package jupyter
+  :straight (:host github :repo "emacs-jupyter/jupyter" :files ("*.el"))
   :ensure t
   :bind (("C-c J R" . jupyter-run-repl)) ; Custom keybinding for running a REPL
   :config
@@ -429,12 +376,14 @@
   )
 
 (use-package yaml-mode
+  :straight (:host github :repo "yoshiki/yaml-mode" :files ("*.el"))
   :ensure t
   :mode ("\\.ya?ml\\'" . yaml-mode)
   :config
   (add-hook 'yaml-mode-hook 'eglot-ensure))
 
 (use-package lsp-mode
+  :straight (:host github :repo "emacs-lsp/lsp-mode")
   :ensure t
   :custom
   (lsp-pylsp-plugins-jedi-use-pyenv-environment t)
@@ -460,22 +409,14 @@
   )
 
 (use-package lsp-ui
+  :straight (:host github :repo "emacs-lsp/lsp-ui" :files ("*.el"))
   :ensure t
   :commands lsp-ui-mode
   :init
   (setq lsp-ui-doc-enable nil))
 
-(use-package org
-  :pin gnu
-  :mode (("\\.org$" . org-mode))
-  ;;:ensure org-plus-contrib
-  :config
-  (setq org-export-with-sub-superscripts nil)
-  (progn
-    ;; config stuff
-    ))
-
 (use-package org-modern
+  :straight (:host github :repo "minad/org-modern" :files ("*.el"))
   :after org
   :init
   (setq
@@ -496,10 +437,12 @@
   )
 
 (use-package olivetti
+  :straight (:host github :repo "rnkn/olivetti" :files ("*.el"))
   :init (add-hook 'org-mode-hook 'olivetti-mode)
   (setq-default olivetti-body-width 144))
 
 (use-package plantuml-mode
+  :straight (:host github :repo "skuro/plantuml-mode" :files ("*.el"))
   :after org
   :init
   ;;(setq plantuml-default-exec-mode 'jar)
@@ -511,34 +454,42 @@
                                                            (http . t))))
 
 (use-package ws-butler
-  :init (ws-butler-global-mode 1))
+  :straight (:host github :repo "lewang/ws-butler")
+  :ensure t
+  :hook (prog-mode . ws-butler-mode))
 
 (use-package magit
+  :straight (:host github :repo "magit/magit")
   :init
   (global-set-key (kbd "C-x g")   'magit-status)
   (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup))
 
-(use-package aggressive-indent)
+(use-package aggressive-indent
+  :straight (:host github :repo "Malabarba/aggressive-indent-mode" :files ("*.el")))
 
 (use-package undo-tree
+  :straight (:host gitlab :repo "tsc25/undo-tree" :files ("*.el"))
   :config
   (global-undo-tree-mode))
 
 (use-package jsonian
-  :load-path "~/.emacs.d/from_src/jsonian"
+  :straight (:host github :repo "iwahbe/jsonian" :files ("*.el"))
   :ensure nil
   :after so-long
-  :custom
+  :config
   (jsonian-no-so-long-mode))
 
 (use-package markdown-mode
+  :straight (:host github :repo "jrblevin/markdown-mode")
   :ensure t
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown"))
 
-(use-package highlight)
+(use-package highlight
+  :straight (:host github :repo "emacsmirror/highlight" :files ("*.el")))
 
 (use-package highlight-symbol
+  :straight (:host github :repo "nschum/highlight-symbol.el" :files ("*.el"))
   :config
   (global-set-key [(control f3)] 'highlight-symbol)
   (global-set-key [f3] 'highlight-symbol-next)
@@ -546,19 +497,18 @@
   (global-set-key [(meta f3)] 'highlight-symbol-query-replace))
 
 (use-package idle-highlight-mode
+  :straight (:host codeberg :repo "ideasman42/emacs-idle-highlight-mode" :files ("*.el"))
   :config
   (set-face-foreground 'region "white")
   (set-face-background 'region "blue")
   :hook prog-mode)
 
-(use-package neotree
-  :config
-  (global-set-key [f8] 'neotree-toggle))
-
 (use-package cider-eval-sexp-fu
+  :straight (:host github :repo "clojure-emacs/cider-eval-sexp-fu" :files ("*.el"))
   :after cider)
 
 (use-package projectile
+  :straight (:host github :repo "bbatsov/projectile" :files ("*.el"))
   :ensure t
   :init
   (setq projectile-project-root-files
@@ -574,18 +524,23 @@
               ("C-c p" . projectile-command-map) ; Binds C-c p to the Projectile command map
               ("s-p" . projectile-command-map))) ; Binds s-p (Super-p) to the Projectile command map
 
-(use-package popup)
+(use-package popup
+  :straight (:host github :repo "auto-complete/popup-el" :files ("*.el")))
 
-(use-package typescript-mode)
+(use-package typescript-mode
+  :straight (:host github :repo "emacs-typescript/typescript.el" :files ("*.el")))
 
-(use-package helm)
+(use-package helm
+  :straight (:host github :repo "emacs-helm/helm" :files ("*.el")))
 
 (use-package helm-projectile
+  :straight (:host github :repo "bbatsov/helm-projectile" :files ("*.el"))
   :after (helm projectile popup)
   :config
   (global-set-key (kbd "C-c p h") 'helm-projectile))
 
 (use-package helm-ag
+  :straight (:host github :repo "emacsattic/helm-ag" :files ("*.el"))
   :after (helm projectile popup)
   :init
   (setq helm-ag-use-agignore t)
@@ -595,22 +550,26 @@
 ;(use-package helm-cider)
 
 (use-package smex
+  :straight (:host github :repo "nonsequitur/smex" :files ("*.el"))
   :config
   (require 'smex)
   (global-set-key (kbd "M-x") 'smex)
   (global-set-key (kbd "M-X") 'smex-major-mode-commands))
 
 (use-package flycheck
+  :straight (:host github :repo "flycheck/flycheck" :files ("*.el"))
   :init
   (global-flycheck-mode)
   :config
   (set-face-attribute 'flycheck-error nil :underline '(:color "red2" :style wave)))
 
 (use-package flycheck-color-mode-line
+  :straight (:host github :repo "flycheck/flycheck-color-mode-line" :files ("*.el"))
   :requires flycheck
   :hook (flycheck-mode . flycheck-color-mode-line-mode))
 
-(use-package flycheck-clj-kondo)
+(use-package flycheck-clj-kondo
+  :straight (:host github :repo "borkdude/flycheck-clj-kondo" :files ("*.el")))
 ;; (use-package typescript)
 ;; (use-package tide
 ;;   :ensure t
@@ -620,6 +579,7 @@
 ;;          (before-save . tide-format-before-save)))
 
 (use-package paredit
+  :straight (:host github :repo "emacsmirror/paredit" :files ("*.el"))
   :config
   (defun ~/paredit/wrap-quote ()
     "Wrap the following sexp in double quotes."
@@ -646,53 +606,6 @@
     (paredit-kill)
     ;; (evil-insert-state)
     )
-
-  ;; (defun ~/paredit/define-evil-keys ()
-  ;;   ;; Normal state
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "W(" 'paredit-wrap-round)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "W[" 'paredit-wrap-square)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "W{" 'paredit-wrap-curly)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "W\"" '~/paredit/wrap-quote)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "(" 'paredit-backward-slurp-sexp)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     ")" 'paredit-backward-barf-sexp)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "{" 'paredit-forward-barf-sexp)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "}" 'paredit-forward-slurp-sexp)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     (kbd "C-S-r") 'paredit-raise-sexp)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "S" 'paredit-splice-sexp)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "s" 'paredit-split-sexp)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "T" '~/paredit/backward-transpose-sexps)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "t" '~/paredit/forward-transpose-sexps)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "Y" 'paredit-copy-as-kill)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "C" '~/paredit/forward-kill-and-insert)
-  ;;   (define-key evil-normal-state-local-map
-  ;;     "D" 'paredit-kill)
-  ;;   ;; Insert state
-  ;;   (define-key evil-insert-state-local-map
-  ;;     (kbd "C-(") 'paredit-backward-slurp-sexp)
-  ;;   (define-key evil-insert-state-local-map
-  ;;     (kbd "C-)") 'paredit-backward-barf-sexp)
-
-  ;;   (define-key evil-insert-state-local-map
-  ;;     (kbd "C-k") 'paredit-kill)
-  ;;   (define-key evil-insert-state-local-map
-  ;;     (kbd "C-M-k") 'kill-sexp)
-  ;;   (define-key evil-insert-state-local-map
-  ;;     (kbd "C-y") 'yank))
 
   (defun ~/paredit-mode ()
     (paredit-mode t)
@@ -749,56 +662,42 @@
                                   (paredit-mode +1)
                                   (fix-paredit-repl)))
 
-(use-package copilot
-  :straight (:host github :repo "chep/copilot-chat.el" :files ("*.el"))
-  ;; :quelpa (copilot :fetcher github
-  ;;                  :repo "copilot-emacs/copilot.el"
-  ;;                  :branch "main"
-  ;;                  :files ("*.el"))
-  :hook (prog-mode . copilot-mode)
-  :bind (:map copilot-completion-map
-              ("<tab>" . 'copilot-accept-completion)
-              ("TAB" . 'copilot-accept-completion)
-              ("C-M-o" . 'copilot-accept-completion-by-word)
-              ("C-M-l" . 'copilot-accept-completion-by-line)
-              ("C-M-p" . 'copilot-accept-completion-by-paragraph)
-              ("C-n" . 'copilot-next-completion)
-              ("C-p" . 'copilot-previous-completion))
+;; (use-package copilot
+;;   :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
+;;   :hook (prog-mode . copilot-mode)
+;;   :bind (:map copilot-completion-map
+;;               ("<tab>" . 'copilot-accept-completion)
+;;               ("TAB" . 'copilot-accept-completion)
+;;               ("C-M-o" . 'copilot-accept-completion-by-word)
+;;               ("C-M-l" . 'copilot-accept-completion-by-line)
+;;               ("C-M-p" . 'copilot-accept-completion-by-paragraph)
+;;               ("C-n" . 'copilot-next-completion)
+;;               ("C-p" . 'copilot-previous-completion))
 
+;;   :config
+;;   (add-to-list 'copilot-indentation-alist '(prog-mode 2))
+;;   (add-to-list 'copilot-indentation-alist '(org-mode 2))
+;;   (add-to-list 'copilot-indentation-alist '(text-mode 2))
+;;   (add-to-list 'copilot-indentation-alist '(closure-mode 2))
+;;   (add-to-list 'copilot-indentation-alist '(clojure-mode 2))
+;;   (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2)))
+
+
+(add-to-list 'load-path "~/projects/emacs-libvterm/")
+(require 'vterm)
+
+(use-package claude-code-ide
+  :straight (:type git :host github :repo "manzaltu/claude-code-ide.el")
+  :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
   :config
-  (add-to-list 'copilot-indentation-alist '(prog-mode 2))
-  (add-to-list 'copilot-indentation-alist '(org-mode 2))
-  (add-to-list 'copilot-indentation-alist '(text-mode 2))
-  (add-to-list 'copilot-indentation-alist '(closure-mode 2))
-  (add-to-list 'copilot-indentation-alist '(clojure-mode 2))
-  (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2)))
+  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 
-(use-package copilot-chat
-  ;; :straight (:host github :repo "chep/copilot-chat.el" :files ("*.el"))
-  :after (request org markdown-mode))
+(use-package rustic
+  :straight (:host github :repo "emacs-rustic/rustic" :files ("*.el"))
+  :init (setq lsp-rust-analyzer-cargo-cfgs [])
+  :ensure t)
 
-(use-package gptel
-  :ensure t
-  :config
-  (setq gptel-model 'claude-4.0-sonnet
-        gptel-backend (gptel-make-gh-copilot "Copilot")))
-
-(use-package mcp
-  :ensure t
-  :custom (mcp-hub-servers
-           `(
-             ;; ("clojure-mcp" . (:command "/bin/bash" :args ("-c" "clojure -X:mcp :port 7888")))
-             ;; ("clj-kondo" . (:command "npx" :args ("clj-kondo-mcp")))
-             ("filesystem" . (:command "/Users/marioaqu/go/bin/mcp-filesystem-server" :args ("/Users/marioaqu/projects/")))
-             ("memory" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-memory")))
-             ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
-             ))
-  :config (require 'mcp-hub)
-  ;; :hook (after-init . mcp-hub-start-all-server)
-  )
-
-;;
-(setq erc-hide-list '("JOIN" "PART" "QUIT"))
+;; (setq erc-hide-list '("JOIN" "PART" "QUIT"))
 
 ;; markdown
 (add-to-list 'auto-mode-alist '("\\.markdown$" . markdown-mode))
@@ -930,6 +829,18 @@ Assumes that the frame is only split into two."
 ;; (global-set-key (kbd "s-R") 'reverse-arrangement)
 
 
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-vc-selected-packages '((monet :url "https://github.com/stevemolitor/monet"))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars)
 ;; End:
