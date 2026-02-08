@@ -27,6 +27,9 @@
 ;; use-package is installed and managed by straight.el
 (straight-use-package 'use-package)
 
+;; Use built-in project.el instead of straight's version (fixes Emacs 30+ conflict)
+(straight-use-package '(project :type built-in))
+
 (eval-when-compile
   (require 'use-package))
 
@@ -378,9 +381,7 @@
 (use-package yaml-mode
   :straight (:host github :repo "yoshiki/yaml-mode" :files ("*.el"))
   :ensure t
-  :mode ("\\.ya?ml\\'" . yaml-mode)
-  :config
-  (add-hook 'yaml-mode-hook 'eglot-ensure))
+  :mode ("\\.ya?ml\\'" . yaml-mode))
 
 (use-package lsp-mode
   :straight (:host github :repo "emacs-lsp/lsp-mode")
@@ -397,6 +398,7 @@
   (setq lsp-enable-file-watchers nil)
   ;; add paths to your local installation of project mgmt tools, like lein
   (setenv "PATH" (concat
+                  "/opt/homebrew/bin" path-separator
                   "/usr/local/bin" path-separator
                   (getenv "PATH")))
   (dolist (m '(clojure-mode
