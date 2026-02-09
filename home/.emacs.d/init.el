@@ -218,7 +218,7 @@
   :straight (:host github :repo "gstamp/align-cljlet" :files ("*.el")))
 
 (use-package cider
-  :straight (:host github :repo "clojure-emacs/cider" :files ("*.el"))
+  :straight (:host github :repo "clojure-emacs/cider" :files ("lisp/*.el"))
   :init
   (setq cider-repl-history-size 10000)
   (setq cider-repl-history-file "~/.cider/history")
@@ -362,19 +362,25 @@
     ;; config stuff
     ))
 
+(use-package simple-httpd
+  :straight (:host github :repo "skeeto/emacs-web-server" :files ("*.el")))
+
+(use-package websocket
+  :straight (:host github :repo "ahyatt/emacs-websocket" :files ("*.el")))
+
 (use-package jupyter
   :straight (:host github :repo "emacs-jupyter/jupyter" :files ("*.el"))
   :ensure t
   :bind (("C-c J R" . jupyter-run-repl)) ; Custom keybinding for running a REPL
   :config
   (setq jupyter-default-kernel "python3")
-  (add-to-list 'exec-path "/usr/local/bin")
+  (add-to-list 'exec-path "/opt/homebrew/bin")
   (with-eval-after-load 'org
     (org-babel-do-load-languages
      'org-babel-load-languages
      '((emacs-lisp . t)
        (python . t)
-       (jupyter . t)))) ; Add jupyter to org-babel-load-languages
+       (jupyter . t))))      ; Add jupyter to org-babel-load-languages
   ;; Other configurations as needed
   )
 
@@ -391,7 +397,6 @@
   :hook ((clojure-mode
           clojurec-mode
           clojurescript-mode
-          python-mode
           yaml-mode)
          . lsp)
   :config
@@ -697,6 +702,9 @@
 (use-package rustic
   :straight (:host github :repo "emacs-rustic/rustic" :files ("*.el"))
   :init (setq lsp-rust-analyzer-cargo-cfgs [])
+  :config
+  (setq lsp-document-sync-method 'full)
+  (setq lsp-enable-on-type-formatting nil)
   :ensure t)
 
 ;; (setq erc-hide-list '("JOIN" "PART" "QUIT"))
